@@ -1,0 +1,51 @@
+<%inherit file="base.html"/>
+
+<%def name="head()"> 
+<link href="/js/prettify/prettify.css" rel="stylesheet" />
+<script src="/js/prettify/prettify.js"></script>
+<script>
+$(document).ready(function(){
+     prettyPrint();
+})
+</script>
+</%def> 
+
+
+<%def name="body()">
+<div class="container-fluid">
+
+<div class="row-fluid">
+  <div class="span8">
+    <div class="row-fluid">
+    <div class="page-header">
+      <h2>${title}</h2>
+    </div>    
+    <!-- //start codes -->
+    <pre class="prettyprint linenums">
+    <code class="Lang-python">
+${current}
+    </code>
+    </pre>
+     <!-- //end codes -->
+    </div>
+  </div>
+
+  <div class="span3">
+    <div class="well sidebar-nav">
+      <ul class="nav nav-list">
+        <li class="nav-header">top codes</li>
+        % for topit in tops:
+        <li><a href="/code/view/${topit['id']}">${topit['title']}</a></li>
+        % endfor
+      </ul>
+    </div><!--/.well -->
+  </div><!--/span-->
+  </div><!--/row-->
+</div>
+
+
+
+
+</%def> 
+
+

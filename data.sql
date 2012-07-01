@@ -1,0 +1,1 @@
+insert into authkeys (authkey,consumer,description,create_time) values ('494ec9f9cbaf40cfa8d4b44447374d27','public','public authkey','2012-06-30 21:20:12');

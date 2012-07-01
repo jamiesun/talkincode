@@ -1,0 +1,26 @@
+CREATE TABLE `codes` (
+	`id` VARCHAR(32) NOT NULL,
+	`title` VARCHAR(512) NULL DEFAULT NULL,
+	`auther` VARCHAR(128) NULL DEFAULT NULL,
+	`email` VARCHAR(255) NULL DEFAULT NULL,
+	`tags` VARCHAR(255) NULL DEFAULT NULL,
+	`content` TEXT NULL,
+	`hits` INT(11) NULL DEFAULT '0',
+	`authkey` VARCHAR(128) NOT NULL,
+	`lang` VARCHAR(32) NULL DEFAULT NULL,
+	`create_time` VARCHAR(19) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB;
+
+CREATE TABLE `authkeys` (
+	`authkey` VARCHAR(128) NOT NULL,
+	`consumer` VARCHAR(255) NULL DEFAULT NULL,
+	`description` VARCHAR(1024) NULL DEFAULT NULL,
+	`hits` INT(11) NOT NULL DEFAULT '0',
+	`create_time` VARCHAR(19) NULL DEFAULT NULL,
+	PRIMARY KEY (`authkey`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB;
