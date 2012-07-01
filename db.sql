@@ -8,6 +8,7 @@ CREATE TABLE `codes` (
 	`hits` INT(11) NULL DEFAULT '0',
 	`authkey` VARCHAR(128) NOT NULL,
 	`lang` VARCHAR(32) NULL DEFAULT NULL,
+	`filename` VARCHAR(255) NULL,
 	`create_time` VARCHAR(19) NULL DEFAULT NULL,
 	PRIMARY KEY (`id`)
 )
