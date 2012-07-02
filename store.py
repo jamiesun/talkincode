@@ -16,8 +16,8 @@ dbpool = PooledDB(creator=MySQLdb,
                   maxusage=1000,
                   host='localhost',
                   user='root',
-                  passwd='root',
-                  db='sayincode',
+                  passwd='lymysql',
+                  db='talkincode_db1',
                   charset="utf8"
                   )
 
@@ -82,7 +82,9 @@ def add_code(title=None,auther=None,email=None,
 
 def list_index(keyword=None,authkey=PUBLIC_KEY,limit=1000):
     if not authkey:
+        logger.error('authkey can not empty')
         raise 'authkey can not empty'
+        
 
     conn = get_conn()
     cur = conn.cursor()
@@ -90,6 +92,7 @@ def list_index(keyword=None,authkey=PUBLIC_KEY,limit=1000):
         cur.execute("select authkey,hits from authkeys where authkey=%s",(authkey))
         keyobjs = cur.fetchone()
         if not keyobjs:
+            logger.error('authkey not exists db')
             raise 'authkey not exists'
 
         if keyword:
@@ -103,7 +106,8 @@ def list_index(keyword=None,authkey=PUBLIC_KEY,limit=1000):
 
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
-    except:
+    except Exception,e:
+        logger.error('list_index error %s'%e)
         raise
     finally:
         cur.close()

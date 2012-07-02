@@ -1,4 +1,4 @@
-﻿#!/usr/bin/python2.7 
+#!/usr/bin/python2.7 
 #coding:utf-8
 """
 @description:a sublime text plugin used post code to a share library
@@ -6,9 +6,10 @@
 from settings import route_app,render,logger,filter_html
 import web
 import cgi
-import datetime
+# import datetime
 import store
 import json
+import os
 
 web.config.debug = True
 
@@ -36,46 +37,48 @@ def notfound():
 def errorpage(msg):
     return render("error.html",error=msg) 
 
-@app.route("/")
-class home:
-    def GET(self):
-        raise web.seeother("/index",absolute=True)
-
-@app.route("/about")
-class about:
-    def GET(self):
-        raise web.seeother("/index",absolute=True)
-
-@app.route("/contact")
-class contact:
-    def GET(self):
-        raise web.seeother("/index",absolute=True)                
-
-@app.route("/js/(.*)")
-class js:
-    def GET(self,filename):
-        raise web.seeother("/static/js/%s"%filename,absolute=True)
-
-@app.route("/css/(.*)")
-class css:
-    def GET(self,filename):
-        raise web.seeother("/static/css/%s"%filename,absolute=True)
-
-@app.route("/img/(.*)")
-class img:
-    def GET(self,filename):
-        raise web.seeother("/static/img/%s"%filename,absolute=True)        
-
 @app.route("/index")
-class index:
+class home():
     def GET(self):
-        tops = store.list_index() 
+        raise web.seeother("/",absolute=True)
+
+@app.route("/")
+class index():
+    def GET(self):
+        tops = store.list_index(limit=50) 
         current = None
         if tops:
             current = store.get_content(tops[0]['id'])
         return render("index.html",tops = tops,
             title = current["title"],
-            current=filter_html(current["content"]))
+            current=filter_html(current["content"]))        
+
+@app.route("/about")
+class about():
+    def GET(self):
+        raise web.seeother("/",absolute=True)
+
+@app.route("/contact")
+class contact():
+    def GET(self):
+        raise web.seeother("/",absolute=True)                
+
+@app.route("/js/(.*)")
+class js():
+    def GET(self,filename):
+        raise web.seeother("/static/js/%s"%filename,absolute=True)
+
+@app.route("/css/(.*)")
+class css():
+    def GET(self,filename):
+        raise web.seeother("/static/css/%s"%filename,absolute=True)
+
+@app.route("/img/(.*)")
+class img():
+    def GET(self,filename):
+        raise web.seeother("/static/img/%s"%filename,absolute=True)        
+
+
 
 @app.route("/code/add")
 class code_add():
@@ -96,7 +99,7 @@ class code_add():
             return errorpage("error")
 
 @app.route("/code/index")
-class code_search():
+class code_index():
     def GET(self):
         keyword = web.input().get("keyword") or ''
         limit = web.input().get("limit") or 1000
@@ -105,7 +108,8 @@ class code_search():
             tops = store.list_index(keyword=keyword,limit=limit) 
             return json.dumps(tops)
         except Exception,e:
-            return json.dumps({"error":"query data error"})         
+            logger.error("query data error %s"%e)
+            return json.dumps({"error":"query data error "})         
 
 @app.route("/code/get/(.*)")
 class code_get():
@@ -151,16 +155,19 @@ class code_view():
 
 
 if __name__ == "__main__":
-    app.run()
-    # import tornado.web
-    # import tornado.wsgi
-    # import tornado.ioloop
-    # import tornado.httpserver
+    # app.run()
+    with open("/var/run/talkincode.pid",'wb') as pidfs:
+        pidfs.write(str(os.getpid()))
+
+    import tornado.web
+    import tornado.wsgi
+    import tornado.ioloop
+    import tornado.httpserver
     # from tornado.options import options,define,parse_command_line    
-    # tornado_wsgi = tornado.wsgi.WSGIContainer(app.wsgifunc())
-    # tornado_app = tornado.web.Application([
-    # ('.*', tornado.web.FallbackHandler, dict(fallback=tornado_wsgi)),
-    # ])
-    # tornado_serv = tornado.httpserver.HTTPServer(tornado_app)
-    # tornado_serv.listen(int(sys.argv[1]))
-    # tornado.ioloop.IOLoop.instance().start()
+    tornado_wsgi = tornado.wsgi.WSGIContainer(app.wsgifunc())
+    tornado_app = tornado.web.Application([
+    ('.*', tornado.web.FallbackHandler, dict(fallback=tornado_wsgi)),
+    ])
+    tornado_serv = tornado.httpserver.HTTPServer(tornado_app)
+    tornado_serv.listen(18000)
+    tornado.ioloop.IOLoop.instance().start()
