@@ -6,7 +6,7 @@
 import MySQLdb
 import uuid
 import datetime
-from settings import logger
+from settings import logger,cache
 
 from DBUtils.PooledDB import PooledDB
 
@@ -15,8 +15,8 @@ PUBLIC_KEY = '494ec9f9cbaf40cfa8d4b44447374d27'
 dbpool = PooledDB(creator=MySQLdb,
                   maxusage=1000,
                   host='localhost',
-                  user='tmp',
-                  passwd='tmp',
+                  user='root',
+                  passwd='',
                   db='db1',
                   charset="utf8"
                   )
@@ -80,6 +80,7 @@ def add_code(title=None,auther=None,email=None,
         cur.close()
         conn.close()
 
+#@cache.cache('list_index_cache', expire=360)
 def list_index(keyword=None,authkey=PUBLIC_KEY,limit=1000):
     if not authkey:
         logger.error('authkey can not empty')
@@ -101,8 +102,6 @@ def list_index(keyword=None,authkey=PUBLIC_KEY,limit=1000):
         else:
             sql = "select id,title,auther,email,tags,lang,hits,filename from codes order by create_time desc limit 0,%s"%limit
         cur.execute(sql)
-
-
 
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
@@ -136,7 +135,7 @@ def get_content(uid,authkey=PUBLIC_KEY):
         
         cur.execute("update codes set hits = %s where id=%s",(hits,uid))
         conn.commit()            
-        cur.execute("select title,content from codes where id = %s",uid)
+        cur.execute("select title,auther,tags,lang,content,hits,create_time from codes where id = %s",uid)
         ones =  cur.fetchone()
         if ones :
             return todict(ones,cur.description)

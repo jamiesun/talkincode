@@ -46,12 +46,15 @@ class home():
 class index():
     def GET(self):
         tops = store.list_index(limit=50) 
-        current = None
         if tops:
-            current = store.get_content(tops[0]['id'])
-        return render("index.html",tops = tops,
-            title = current["title"],
-            current=filter_html(current["content"]))        
+            content = store.get_content(tops[0]['id'])
+            if content:
+                content["content"] = filter_html(content["content"]) 
+                return render("index.html",tops = tops,content=content) 
+            else:
+                return render("error.html",error="no data") 
+
+               
 
 @app.route("/about")
 class about():
@@ -127,47 +130,45 @@ class code_search():
         keyword = web.input().get("keyword")
         if not keyword:
             raise web.seeother("/")
-        try:
-            tops = store.list_index(keyword=keyword,limit=50) 
-            current = None
-            if tops:
-                current = store.get_content(str(tops[0]['id']))
-
-            return render("index.html",tops = tops,
-                title = current["title"],
-                current=filter_html(current["content"]))
-        except Exception,e:
-            return errorpage("error:%s"%e)            
+        tops = store.list_index(keyword=keyword,limit=50) 
+        if tops:
+            content = store.get_content(str(tops[0]['id']))
+            if content:
+                content["content"] = filter_html(content["content"]) 
+                return render("index.html",tops = tops,content=content) 
+            else:
+                return render("error.html",error="no data")          
 
 @app.route("/code/view/(.*)")
 class code_view():
     def GET(self,uid):
-        try:
-            tops = store.list_index(limit=50) 
-            content = store.get_content(uid)
-            return render("index.html",tops = tops,
-                title = content["title"],
-                current=filter_html(content["content"]),
-                pagename=content["title"])
-        except:
-            return errorpage("error")
+        tops = store.list_index(limit=50) 
+        content = store.get_content(uid)
+        if content:
+            content["content"] = filter_html(content["content"]) 
+            return render("index.html",tops = tops,content=content,pagename=content["title"]) 
+        else:
+            return render("error.html",error="no data") 
 
 
 
 if __name__ == "__main__":
     # app.run()
-    with open("/var/run/talkincode.pid",'wb') as pidfs:
-        pidfs.write(str(os.getpid()))
+    try:
+        with open("/var/run/talkincode.pid",'wb') as pidfs:
+            pidfs.write(str(os.getpid()))
+        import tornado.web
+        import tornado.wsgi
+        import tornado.ioloop
+        import tornado.httpserver
+        # from tornado.options import options,define,parse_command_line    
+        tornado_wsgi = tornado.wsgi.WSGIContainer(app.wsgifunc())
+        tornado_app = tornado.web.Application([
+        ('.*', tornado.web.FallbackHandler, dict(fallback=tornado_wsgi)),
+        ])
+        tornado_serv = tornado.httpserver.HTTPServer(tornado_app)
+        tornado_serv.listen(18000)
+        tornado.ioloop.IOLoop.instance().start()            
+    except:
+        app.run()
 
-    import tornado.web
-    import tornado.wsgi
-    import tornado.ioloop
-    import tornado.httpserver
-    # from tornado.options import options,define,parse_command_line    
-    tornado_wsgi = tornado.wsgi.WSGIContainer(app.wsgifunc())
-    tornado_app = tornado.web.Application([
-    ('.*', tornado.web.FallbackHandler, dict(fallback=tornado_wsgi)),
-    ])
-    tornado_serv = tornado.httpserver.HTTPServer(tornado_app)
-    tornado_serv.listen(18000)
-    tornado.ioloop.IOLoop.instance().start()
