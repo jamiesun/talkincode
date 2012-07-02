@@ -15,9 +15,9 @@ PUBLIC_KEY = '494ec9f9cbaf40cfa8d4b44447374d27'
 dbpool = PooledDB(creator=MySQLdb,
                   maxusage=1000,
                   host='localhost',
-                  user='root',
-                  passwd='lymysql',
-                  db='talkincode_db1',
+                  user='tmp',
+                  passwd='tmp',
+                  db='db1',
                   charset="utf8"
                   )
 
