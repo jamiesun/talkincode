@@ -16,25 +16,51 @@ $(document).ready(function(){
 <div class="row-fluid">
   <div class="span8">
     <div class="row-fluid">
-    <!-- //start codes -->
-    <pre class="prettyprint linenums Lang-python">
-<h3># ${content["title"]} </h3>   
-#@auther: ${content['auther']}  @lang: ${content['lang']}  @hits: ${content['hits']}
-#@tags: ${content['tags']}
-${content["content"]}
-    </pre>
-     <!-- //end codes -->
+    <!-- //codes list -->
+    <table class="table">
+     <thead>
+        <tr>
+          <th>热度</th>
+          <th>语言</th>
+          <th>标题</th>
+          <th>分享者</th>
+          <th>时间</th>
+        </tr>
+      </thead>    
+      <tbody>
+      % for topit in tops:
+        <tr>
+          <td><span class="badge">${topit['hits']}</span></td>
+          <td><span class="label label-info">${topit['lang']}</span></td>
+          <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
+          <td><a href="#">@${topit['auther']}</a></td>
+          <td>${topit['create_time']}</td>
+        </tr>
+      % endfor
+      </tbody>
+    </table>
+     <!-- //end codes list -->
     </div>
   </div>
 
-  <div class="span4">
+  <div class="span3">
     <div class="well sidebar-nav">
-      <ul class="nav nav-list">
-        <li class="nav-header">top codes</li>
-        % for topit in tops:
-        <li><a href="/code/view/${topit['id']}"> <i class="icon-list-alt"></i>${topit['title']}</a></li>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>编程语言</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+       % for lang in ["c/c++","java","python","ruby","php","lisp","perl","vb","haskell","go","html/css","sql",u"其他"]:
+        <tr>
+          <td><a class="label label-info">${lang}</a></td>
+          <td><span class="badge badge">11</span></td>
+        </tr>
         % endfor
-      </ul>
+      </tbody>
+    </table>
     </div><!--/.well -->
   </div><!--/span-->
   </div><!--/row-->

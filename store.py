@@ -16,8 +16,8 @@ dbpool = PooledDB(creator=MySQLdb,
                   maxusage=1000,
                   host='localhost',
                   user='root',
-                  passwd='',
-                  db='db1',
+                  passwd='root',
+                  db='talkincode_db1',
                   charset="utf8"
                   )
 
@@ -97,10 +97,10 @@ def list_index(keyword=None,authkey=PUBLIC_KEY,limit=1000):
             raise 'authkey not exists'
 
         if keyword:
-            sql = "select id,title,auther,email,tags,lang,hits,filename  from codes\
+            sql = "select id,title,auther,email,tags,lang,hits,filename,create_time from codes\
              where title like '%%%s%%' order by create_time desc limit 0,%s"%(keyword,limit)
         else:
-            sql = "select id,title,auther,email,tags,lang,hits,filename from codes order by create_time desc limit 0,%s"%limit
+            sql = "select id,title,auther,email,tags,lang,hits,filename,create_time from codes order by create_time desc limit 0,%s"%limit
         cur.execute(sql)
 
         result = cur.fetchall()

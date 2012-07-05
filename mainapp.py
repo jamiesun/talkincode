@@ -146,7 +146,7 @@ class code_view():
         content = store.get_content(uid)
         if content:
             content["content"] = filter_html(content["content"]) 
-            return render("index.html",tops = tops,content=content,pagename=content["title"]) 
+            return render("code.html",tops = tops,content=content,pagename=content["title"]) 
         else:
             return render("error.html",error="no data") 
 
