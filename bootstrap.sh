@@ -1,16 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 #encoding:utf-8
 #
 # chkconfig: - 91 35
 # description: sayincode service script
 #
-activate_this = '/opt/sayincode/pydev/bin/activate_this.py'
-execfile(activate_this, dict(__file__=activate_this))
+# activate_this = '/opt/sayincode/pydev/bin/activate_this.py'
+# execfile(activate_this, dict(__file__=activate_this))
 import sys
 import os
-pid = "/var/run/sayincode.pid"
-python_exec = '/opt/sayincode/pydev/bin/python'
-app_dir = "/opt/sayincode"
+pid = "/var/run/talkincode.pid"
+python_exec = '/usr/bin/python2.7'
+app_dir = "/talkincode"
 app_script = "mainapp.py"
 def start():
 	os.system("cd %s && exec nohup %s %s &"%(app_dir,python_exec,app_script))
