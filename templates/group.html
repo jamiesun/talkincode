@@ -16,18 +16,6 @@ $(document).ready(function(){
 <div class="row-fluid">
   <div class="span8">
     <div class="row-fluid">
-
-  <table class="table">
-  <thead>
-    <tr>
-      <th> 热门编程语言： </th>
-      % for lang in langs[:12]:
-      <th><a href="#td">${lang["name"]}</a></th>
-      % endfor
-      <th><a class="btn btn-small" href="#">分享我的代码</a> </th>
-      </tr>
-   </thead>
-  </table>
     <!-- //codes list -->
     <table class="table">
      <thead>
@@ -40,7 +28,7 @@ $(document).ready(function(){
         </tr>
       </thead>    
       <tbody>
-      % for topit in tops[:10]:
+      % for topit in tops:
         <tr>
           <td><span class="badge">${topit['hits']}</span></td>
           <td><span class="label label-info">${topit['lang']}</span></td>
@@ -60,15 +48,15 @@ $(document).ready(function(){
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>热门标签</th>
+          <th>活跃小组</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-       % for lang in langs:
+       % for group in groups:
         <tr>
-          <td><a >${lang["name"]}</a></td>
-          <td><span class="badge badge">${lang["hits"]}</span></td>
+          <td><a href="/group/category/${group.get("guid")}">${group["name"]}</a></td>
+          <td><span class="badge badge">${group["posts"]}</span></td>
         </tr>
         % endfor
       </tbody>
@@ -77,9 +65,6 @@ $(document).ready(function(){
   </div><!--/span-->
   </div><!--/row-->
 </div>
-
-
-
 
 </%def> 
 

@@ -11,7 +11,7 @@ import sys
 import re
 
 config = {
-  "sitename":"Say in code"
+  "sitename":"Talk in code"
 }
 
 """ define logging """

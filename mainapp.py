@@ -3,13 +3,14 @@
 """
 @description:a sublime text plugin used post code to a share library
 """
-from settings import route_app,render,logger,filter_html
+from settings import route_app,render,filter_html,logger
 import web
 import cgi
-# import datetime
-import store
-import json
+import codestore
 import os
+import apiapp
+import codeapp
+import groupapp
 
 web.config.debug = True
 
@@ -17,6 +18,9 @@ cgi.maxlen = 10 * 1024 * 1024 # 10MB
 
 """ application defined """
 app  = route_app()
+app.mount("/api",apiapp.app)
+app.mount("/code",codeapp.app)
+app.mount("/group",groupapp.app)
 
 '''session defined'''
 # session = web.session.Session(app, web.session.DiskStore('sessions'), {'count': 0})   
@@ -41,27 +45,7 @@ def errorpage(msg):
 class home():
     def GET(self):
         raise web.seeother("/",absolute=True)
-
-@app.route("/")
-class index():
-    def GET(self):
-        tops = store.list_index(limit=50) 
-        current = None
-        if tops:
-            current = store.get_content(tops[0]['id'])
-        return render("index.html",tops = tops,
-            title = current["title"],
-            current=filter_html(current["content"]))        
-
-@app.route("/about")
-class about():
-    def GET(self):
-        raise web.seeother("/",absolute=True)
-
-@app.route("/contact")
-class contact():
-    def GET(self):
-        raise web.seeother("/",absolute=True)                
+            
 
 @app.route("/js/(.*)")
 class js():
@@ -78,96 +62,54 @@ class img():
     def GET(self,filename):
         raise web.seeother("/static/img/%s"%filename,absolute=True)        
 
-
-
-@app.route("/code/add")
-class code_add():
-    def POST(self):
-        forms = web.input()
-        params = dict(title = forms.get("title"),
-                      auther = forms.get("auther"),
-                      email = forms.get("email"),
-                      tags = forms.get("tags"),
-                      content = forms.get("content"),
-                      authkey = forms.get("authkey"),
-                      filename = forms.get("filename"),
-                      lang=forms.get("lang"))
-        try:
-            store.add_code(**params)
-            return "ok"
-        except:
-            return errorpage("error")
-
-@app.route("/code/index")
-class code_index():
+@app.route("/")
+class index():
     def GET(self):
-        keyword = web.input().get("keyword") or ''
-        limit = web.input().get("limit") or 1000
+        tops = codestore.list_index(limit=50) 
+        langs = codestore.list_langs()
+        return render("index.html",tops = tops,langs=langs) 
 
-        try:
-            tops = store.list_index(keyword=keyword,limit=limit) 
-            return json.dumps(tops)
-        except Exception,e:
-            logger.error("query data error %s"%e)
-            return json.dumps({"error":"query data error "})         
-
-@app.route("/code/get/(.*)")
-class code_get():
-    def GET(self,uid):
-        try:
-            content = store.get_content(uid)
-            return json.dumps(content)
-        except:
-            return json.dumps({"error":"query data error"})  
 
 
 @app.route("/search")
 class code_search():
     def POST(self):
-        keyword = web.input().get("keyword")
-        if not keyword:
-            raise web.seeother("/")
-        try:
-            tops = store.list_index(keyword=keyword,limit=50) 
-            current = None
-            if tops:
-                current = store.get_content(str(tops[0]['id']))
-
-            return render("index.html",tops = tops,
-                title = current["title"],
-                current=filter_html(current["content"]))
-        except Exception,e:
-            return errorpage("error:%s"%e)            
-
-@app.route("/code/view/(.*)")
-class code_view():
-    def GET(self,uid):
-        try:
-            tops = store.list_index(limit=50) 
-            content = store.get_content(uid)
-            return render("index.html",tops = tops,
-                title = content["title"],
-                current=filter_html(content["content"]),
-                pagename=content["title"])
-        except:
-            return errorpage("error")
+        return None     
 
 
+class GEventServer():
+    """ gevent wsgi服务器定义，可利用多进程
+    """
+    def __init__(self,handler):
+        self.handler = handler
+
+    def start(self):
+        from multiprocessing import Process
+        from gevent import monkey
+        monkey.patch_socket()
+        monkey.patch_os()
+        from gevent.wsgi import WSGIServer
+        server = WSGIServer((self.host, self.port), self.handler,log=None)
+        server.pre_start()
+        def serve_forever():
+            logger.info('starting server')
+            try:
+                server.start_accepting()
+                try:
+                    server._stopped_event.wait()
+                except:
+                    raise
+            except KeyboardInterrupt:
+                pass                
+        for i in range(2):
+            Process(target=serve_forever, args=tuple()).start()
+        serve_forever()
 
 if __name__ == "__main__":
-    # app.run()
-    with open("/var/run/talkincode.pid",'wb') as pidfs:
-        pidfs.write(str(os.getpid()))
+    try:
+        with open("/var/run/talkincode.pid",'wb') as pidfs:
+            pidfs.write(str(os.getpid()))     
+        GEventServer(app.wsgifunc()).start()
+    except:
+        app.run()
 
-    import tornado.web
-    import tornado.wsgi
-    import tornado.ioloop
-    import tornado.httpserver
-    # from tornado.options import options,define,parse_command_line    
-    tornado_wsgi = tornado.wsgi.WSGIContainer(app.wsgifunc())
-    tornado_app = tornado.web.Application([
-    ('.*', tornado.web.FallbackHandler, dict(fallback=tornado_wsgi)),
-    ])
-    tornado_serv = tornado.httpserver.HTTPServer(tornado_app)
-    tornado_serv.listen(18000)
-    tornado.ioloop.IOLoop.instance().start()
