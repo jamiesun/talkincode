@@ -1,0 +1,22 @@
+<%inherit file="base.html"/>
+
+<%def name="head()"> 
+</%def> 
+
+
+<%def name="body()">
+
+<div class="container">
+
+<form class="well" action="/login" method="post" autocomplete="on">
+  <label>用户名</label>
+  <input name="username" type="text"  autofocus="autofocus" required="required" class="span3" placeholder="输入用户名">
+  <label>密码</label>
+  <input name="password" type="password" required="required" class="span3" placeholder="输入密码">  
+  <br/>
+  <button type="submit" class="btn">立即登录</button>
+</form>
+
+</div>
+
+</%def> 

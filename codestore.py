@@ -1,35 +1,11 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
 from settings import logger
-from store import get_conn,todict
+from store import get_conn,todict,doauthkey
 import uuid
 import datetime
 
-PUBLIC_KEY = '494ec9f9cbaf40cfa8d4b44447374d27'
 
-def doauthkey(func):
-    def func_warp(*args,**argkv):
-        authkey = argkv.get("authkey")
-        if not authkey:
-            authkey=PUBLIC_KEY
-        if type(authkey) == unicode:
-            authkey = str(authkey)            
-        conn = get_conn()
-        cur = conn.cursor()
-        try:
-            cur.execute("select authkey,hits from authkeys where authkey=%s",(authkey))
-            keyobjs = cur.fetchone()
-            if not keyobjs:
-                raise Exception('authkey not exists')
-            authkey_hits = keyobjs[0][1]
-            hits = int(authkey_hits) + 1
-            cur.execute("update authkeys set hits = %s where authkey=%s",(hits,authkey))
-            conn.commit()
-            return func(*args,**argkv)
-        finally:
-            cur.close()
-            conn.close()
-    return func_warp
 
 def list_langs():
     conn = get_conn()
@@ -46,7 +22,8 @@ def list_langs():
         conn.close()
 
 @doauthkey
-def add_code(pid=0,title=None,auther=None,email=None,tags=None,content=None,lang=None,filename=None,authkey=PUBLIC_KEY):
+def add_code(pid=0,title=None,auther=None,email=None, tags=None,
+             content=None,lang=None,filename=None,authkey=None):
     logger.info("add code title=%s,lang=%s"%(title,lang))
     conn = get_conn()
     cur = conn.cursor()
@@ -76,7 +53,7 @@ def add_code(pid=0,title=None,auther=None,email=None,tags=None,content=None,lang
         conn.close()
 
 @doauthkey
-def list_index(keyword=None,limit=1000,authkey=PUBLIC_KEY):
+def list_index(keyword=None,limit=1000,authkey=None):
     conn = get_conn()
     cur = conn.cursor()
     try:
@@ -98,7 +75,7 @@ def list_index(keyword=None,limit=1000,authkey=PUBLIC_KEY):
         conn.close()
 
 @doauthkey
-def get_content(uid,authkey=PUBLIC_KEY):
+def get_content(uid,authkey=None):
     conn = get_conn()
     cur = conn.cursor()
     try:

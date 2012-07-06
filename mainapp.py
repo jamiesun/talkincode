@@ -11,6 +11,8 @@ import os
 import apiapp
 import codeapp
 import groupapp
+import userapp
+import store
 
 web.config.debug = True
 
@@ -21,7 +23,7 @@ app  = route_app()
 app.mount("/api",apiapp.app)
 app.mount("/code",codeapp.app)
 app.mount("/group",groupapp.app)
-
+app.mount("/user",userapp.app)
 '''session defined'''
 # session = web.session.Session(app, web.session.DiskStore('sessions'), {'count': 0})   
 if web.config.get('_session') is None:
@@ -69,7 +71,58 @@ class index():
         langs = codestore.list_langs()
         return render("index.html",tops = tops,langs=langs) 
 
+@app.route("/join")
+class register():
+    def GET(self):
+        return render("join.html") 
 
+    def POST(self):
+        form = web.input()
+        username = form.get("username")
+        password = form.get("password")
+        password2 = form.get("password2")
+        email = form.get("email")
+        if not username or not password:
+            return errorpage(u"用户名和密码不能为空") 
+        if not password == password2:
+            return errorpage(u"确认密码错误")
+        if not email:
+            return errorpage(u"电子邮件不能为空")
+
+        try:
+            user = store.register(username,password,email)
+            usession = web.ctx.session
+            usession["user"] = user 
+            raise web.seeother("/")
+        except Exception,e:
+            return errorpage("register error %s"%e)
+
+@app.route("/login")
+class login():
+    def GET(self):
+        return render("login.html") 
+
+    def POST(self):
+        form = web.input()
+        username = form.get("username")
+        password = form.get("password")
+        if not username or not password:
+            return errorpage(u"用户名和密码不能为空") 
+        try:
+            user = store.login(username,password)
+            usession = web.ctx.session
+            usession["user"] = user 
+            raise web.seeother("/")
+        except Exception,e:
+            return errorpage("login error %s"%e)
+
+
+@app.route("/logout")
+class login():
+    def GET(self):
+        sess = web.ctx.session
+        sess["user"] = None
+        raise web.seeother("/")
 
 @app.route("/search")
 class code_search():
@@ -95,6 +148,7 @@ class GEventServer():
             logger.info('starting server')
             try:
                 server.start_accepting()
+
                 try:
                     server._stopped_event.wait()
                 except:
