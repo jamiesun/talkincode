@@ -163,4 +163,4 @@ pip-log.txt
 .DS_Store
 sftp-config.json
 logs
-
+sessions
