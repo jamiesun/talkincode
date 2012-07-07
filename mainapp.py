@@ -3,10 +3,12 @@
 """
 @description:a sublime text plugin used post code to a share library
 """
-from settings import route_app,render,filter_html,logger
+from settings import route_app,render,logger
+from settings import errorpage
 import web
 import cgi
 import codestore
+import groupstore
 import os
 import apiapp
 import codeapp
@@ -37,11 +39,7 @@ def session_hook():
 
 app.add_processor(web.loadhook(session_hook))   
 
-def notfound():
-    return web.notfound("Sorry, the page you were looking for was not found.")
 
-def errorpage(msg):
-    return render("error.html",error=msg) 
 
 @app.route("/index")
 class home():
@@ -67,9 +65,17 @@ class img():
 @app.route("/")
 class index():
     def GET(self):
-        tops = codestore.list_index(limit=50) 
+        tops = codestore.list_index(limit=8) 
         langs = codestore.list_langs()
-        return render("index.html",tops = tops,langs=langs) 
+        stats = groupstore.get_post_stats()
+        posts = groupstore.list_posts()
+        return render("index.html",
+            tops = tops,
+            posts=posts,
+            langs=langs,
+            stats=stats,
+            get_user=groupstore.get_user,
+            get_group=groupstore.get_group) 
 
 @app.route("/join")
 class register():

@@ -91,7 +91,7 @@ def register(username,password,email):
                       values (%s,%s,%s,%s,%s,%s,%s,%s)",\
                     (authkey,username,username,password,email,authkey,create_time,create_time))
         conn.commit()
-        return dict(username=username,email=email,authkey=authkey,lastlogin=create_time)
+        return dict(id=authkey,username=username,email=email,authkey=authkey,lastlogin=create_time)
     except Exception,e:
         logger.error("register error,%s"%e)
         raise e
@@ -105,12 +105,13 @@ def login(username,password):
     conn = get_conn()
     cur = conn.cursor()
     try:
-        cur.execute("select username,email,url,authkey,lastlogin\
+        cur.execute("select id,username,email,url,authkey,lastlogin\
              from users where username=%s and password= %s",(username,password))
         user = cur.fetchone()
+
         if not user:
             raise Exception("user not exists")
-        return dict(username=user[0],email=user[1],url=user[2],authkey=user[3],lastlogin=user[4])
+        return dict(id=user[0],username=user[1],email=user[2],url=user[3],authkey=user[4],lastlogin=user[5])
     except Exception,e:
         logger.error("register error,%s"%e)
         raise e
@@ -121,7 +122,8 @@ def login(username,password):
 def initdata():
     conn = get_conn()
     cur = conn.cursor()
-    grps = {"python":"python编程",
+    grps = {"all":"综合讨论",
+            "python":"python编程",
             "php":"php编程",
             "html":"html&css",
             "st2":"sublime text 2小站",

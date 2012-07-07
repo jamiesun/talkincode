@@ -10,6 +10,7 @@ import logging
 import sys
 import re
 
+
 config = {
   "sitename":"Talk in code"
 }
@@ -73,6 +74,21 @@ def render(filename,**args):
         return mytemplate.render(**args)
     except:
         return exceptions.text_error_template().render()
+
+def notfound():
+    return web.notfound("Sorry, the page you were looking for was not found.")
+
+def errorpage(msg):
+    return render("error.html",error=msg)        
+    
+def auth_user(func):
+    def warp(*args,**kwargs):
+        session = web.ctx.session 
+        if not session or not session.get("user"):
+            raise web.seeother("/",absolute=True)
+        else:
+            return func(*args,**kwargs)
+    return warp
 
 
 def filter_tags(htmlstr):
