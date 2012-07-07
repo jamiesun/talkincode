@@ -15,8 +15,8 @@ import codeapp
 import groupapp
 import userapp
 import store
+import tagstore
 
-web.config.debug = True
 
 cgi.maxlen = 10 * 1024 * 1024 # 10MB
 
@@ -65,15 +65,17 @@ class img():
 @app.route("/")
 class index():
     def GET(self):
-        tops = codestore.list_index(limit=8) 
+        tops = codestore.list_index(limit=5) 
         langs = codestore.list_langs()
         stats = groupstore.get_post_stats()
-        posts = groupstore.list_posts()
+        posts = groupstore.list_posts(limit=20)
+        tagset = tagstore.get_tags()
         return render("index.html",
             tops = tops,
             posts=posts,
             langs=langs,
             stats=stats,
+            tagset=tagset,
             get_user=groupstore.get_user,
             get_group=groupstore.get_group) 
 
@@ -166,6 +168,8 @@ class GEventServer():
         serve_forever()
 
 if __name__ == "__main__":
+    web.config.debug = True
+
     try:
         with open("/var/run/talkincode.pid",'wb') as pidfs:
             pidfs.write(str(os.getpid()))     

@@ -21,7 +21,7 @@ $(document).ready(function(){
   <thead>
     <tr>
       <th> 热门编程语言： </th>
-      % for lang in langs[:12]:
+      % for lang in langs[:8]:
       <th><a href="#td">${lang["name"]}</a></th>
       % endfor
       <th><a class="btn btn-small" href="#">分享我的代码</a> </th>
@@ -58,29 +58,36 @@ $(document).ready(function(){
       <li class="active">主题数:${stats.get("total")}</li><span class="divider">/</span>
       <li class="active">浏览次数:${stats.get("hits_total") or 0}</li>
     </ul>   
-    <!-- //codes list -->
+
     <table class="table">
-     <thead>
-        <tr>
-          <th>浏览</th>
-          <th>讨论区</th>
-          <th>标题</th>
-          <th>作者</th>
-          <th>最后更新</th> 
+    <thead>
+      <tr>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>    
+    % for topit in posts:
+    <tr>
+      <td >
+        <span ><span class="badge">${topit['hits']}</span> 
+      </td>
+      <td>
+        <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
+        <p >${topit["content"][:128]}</p>
+        <div >
+          <span><a href="/group/category/${get_group(topit['groupid'])["guid"]}">
+          ${get_group(topit['groupid'])["name"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
+          <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
+           % for tag in topit["tags"].split(","):
+            <span >${tag}</span>
+           % endfor          
+        </div>             
+        </td>
         </tr>
-      </thead>    
-      <tbody>
-      % for topit in posts:
-        <tr>
-          <td><span class="badge">${topit['hits']}</span></td>
-          <td><span class="label label-info">${get_group(topit['groupid'])["name"]}</span></td>
-          <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
-          <td><a href="#">@${get_user(topit['userid'])["username"]}</a></td>
-          <td>${topit['modified']}</td>
-        </tr>
-      % endfor
-      </tbody>
-    </table>
+    % endfor
+    </tbody>
+   </table>
 
 
     </div>
@@ -96,10 +103,10 @@ $(document).ready(function(){
         </tr>
       </thead>
       <tbody>
-       % for lang in langs:
+       % for tag in tagset:
         <tr>
-          <td><a >${lang["name"]}</a></td>
-          <td><span class="badge badge">${lang["hits"]}</span></td>
+          <td><a href="/tags/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
         </tr>
         % endfor
       </tbody>

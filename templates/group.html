@@ -38,7 +38,7 @@ $(document).ready(function(){
         <span ><span class="badge">${topit['hits']}</span> 
       </td>
       <td>
-        <h3><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </h3>
+        <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
         <p >${topit["content"][:128]}</p>
         <div >
           <span><a href="/group/category/${get_group(topit['groupid'])["guid"]}">
@@ -46,7 +46,7 @@ $(document).ready(function(){
           <span><a href="#">@${get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
           <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
            % for tag in topit["tags"].split(","):
-            <span class="label label-info">${tag}</span>
+            <span >${tag}</span>
            % endfor          
         </div>             
         </td>

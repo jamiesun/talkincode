@@ -22,11 +22,11 @@ class index():
 @app.route("/view/(.*)")
 class code_view():
     def GET(self,uid):
-        tops = codestore.list_index(limit=50) 
+        versions = codestore.list_versions(uid) 
         content = codestore.get_content(uid)
         if content:
             content["content"] = filter_html(content["content"]) 
-            return render("code_view.html",tops = tops,content=content,pagename=content["title"]) 
+            return render("code_view.html",versions = versions,content=content,pagename=content["title"]) 
         else:
             return render("error.html",error="no data")        
 

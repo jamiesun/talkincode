@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
 from settings import logger
-from store import get_conn,todict,doauthkey
+from store import get_conn,todict
 import uuid
 import datetime
 
@@ -21,7 +21,6 @@ def list_langs():
         cur.close()
         conn.close()
 
-@doauthkey
 def add_code(pid=0,title=None,auther=None,email=None, tags=None,
              content=None,lang=None,filename=None,authkey=None):
     logger.info("add code title=%s,lang=%s"%(title,lang))
@@ -52,8 +51,8 @@ def add_code(pid=0,title=None,auther=None,email=None, tags=None,
         cur.close()
         conn.close()
 
-@doauthkey
-def list_index(keyword=None,limit=1000,authkey=None):
+
+def list_index(keyword=None,limit=1000):
     conn = get_conn()
     cur = conn.cursor()
     try:
@@ -74,8 +73,23 @@ def list_index(keyword=None,limit=1000,authkey=None):
         cur.close()
         conn.close()
 
-@doauthkey
-def get_content(uid,authkey=None):
+def list_versions(pid,limit=50):
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute("""select id,parent,title,auther,email,tags,lang,hits,filename,create_time
+         from codes where parent = %s
+         order by create_time desc limit 0,%s""",(pid,limit))
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except Exception,e:
+        logger.error('list_index error %s'%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()        
+
+def get_content(uid):
     conn = get_conn()
     cur = conn.cursor()
     try:

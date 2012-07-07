@@ -117,7 +117,8 @@ def login(username,password):
         raise e
     finally:
         cur.close()
-        conn.close()        
+        conn.close()     
+
 
 def initdata():
     conn = get_conn()

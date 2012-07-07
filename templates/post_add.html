@@ -18,12 +18,12 @@
   <div class="controls">
   % for grp in groups:
       <label class="checkbox inline">
-        <input type="radio" name="gid"  value="${grp["id"]}" >${grp["name"]}
+        <input type="radio" name="gid"  value="${grp["id"]}" ${ gid==grp["id"] and "checked" or "" } >${grp["name"]}
       </label>
   % endfor
   </div>
     <br/>
-  <label>主题内容</label>
+  <label>主题内容（支持<a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>语法）</label>
    <textarea class="input-xlarge" id="content" name="content" rows="9" style="margin: 0px; width: 600px; height: 280px; "></textarea>  
   <br/>
   <button type="submit" class="btn">立即发表</button>

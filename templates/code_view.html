@@ -30,8 +30,8 @@ ${content["content"]}
   <div class="span4">
     <div class="well sidebar-nav">
       <ul class="nav nav-list">
-        <li class="nav-header">top codes</li>
-        % for topit in tops:
+        <li class="nav-header">所有版本</li>
+        % for topit in versions:
         <li><a href="/code/view/${topit['id']}"> <i class="icon-list-alt"></i>${topit['title']}</a></li>
         % endfor
       </ul>

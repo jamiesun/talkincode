@@ -137,11 +137,11 @@ def get_content(uid):
     conn = get_conn()
     cur = conn.cursor()
     try:
-        cur.execute("select hits from codes where id=%s",(uid))
+        cur.execute("select hits from posts where id=%s",uid)
         postobjs = cur.fetchone()   
 
         if not postobjs:
-            raise Exception('code not exists')         
+            raise Exception('post not exists')         
 
         post_hits = postobjs[0]
         hits = (int(post_hits) + 1)
@@ -159,8 +159,9 @@ def get_content(uid):
             return todict(ones,cur.description)
         else:
             raise Exception("no result")
-    except:
-        raise
+    except Exception,e:
+        logger.error('get_content error %s'%e)
+        raise e
     finally:
         cur.close()
         conn.close()
@@ -241,6 +242,50 @@ def del_content(uid):
     finally:
         cur.close()
         conn.close()
+
+def add_comment(postid,content,userid=None,author=None,email=None,url=None,ip=None,agent=None,status=0):
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute("select count(*) from posts where id = %s",postid)
+        if cur.fetchone()[0] == 0:
+            raise Exception("post not exists")
+        modified = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
+        uid = uuid.uuid4().hex
+        cur.execute("""
+        INSERT INTO comments
+        (id, postid, author,content, userid, email, url, ip, agent,status, created)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) """,
+        (uid,postid,author,content,userid,email,url,ip,agent,status,modified))
+        conn.commit()            
+    except Exception,e:
+        logger.error("add_comment error %s"%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()
+
+def list_comments(pid,page=1,limit=30):
+    conn = get_conn()
+    cur = conn.cursor()
+    cpage = page
+    if page >= 1:
+        cpage = page-1
+    try:
+        cur.execute("""
+            SELECT id,postid,author,content,userid,url,created
+            FROM comments
+            WHERE postid = %s order by created desc
+            LIMIT %s,%s            
+            """,(pid,cpage,limit))
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except Exception,e:
+        logger.error('list_comments error %s'%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()        
 
 if __name__ == "__main__":
     print list_posts_by_guid("python")

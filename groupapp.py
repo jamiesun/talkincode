@@ -43,7 +43,8 @@ class add_post():
     @auth_user
     def GET(self):
         groups = groupstore.list_groups()
-        return render("post_add.html",groups=groups) 
+        gid = web.input().get("gid")
+        return render("post_add.html",groups=groups,gid=gid) 
 
     @auth_user
     def POST(self):
@@ -57,10 +58,35 @@ class add_post():
         if not title or not gid or not content:
             return errorpage(u"请输入完整数据")
         try:
+            if tags :tags = tags[:255]
+            title = title[:255]
             groupstore.add_post(gid,userid,title,tags,content)
             raise web.seeother("/group/",absolute=True)
         except Exception, e:
             return errorpage("add post error %s"%e)
+
+@app.route("/comment/add")
+class add_comment():
+    def POST(self):
+        try:
+            user = web.ctx.session.get("user")
+            userid = user and user["id"] or None  
+            form = web.input()
+            author = form.get("author")
+            content = form.get("content")
+            postid = form.get("postid")
+            email = form.get("email")
+            url = form.get("url")
+            ip = web.ctx.ip
+            agent =  web.ctx.env.get('HTTP_USER_AGENT')
+            status = userid and 1 or 0
+            if author : author = author[:64]
+            if email :email = email[:128]
+            if url : url = url[:128]
+            groupstore.add_comment(postid,content,userid,author,email,url,ip,agent,status)
+            raise web.seeother("/group/post/view/%s"%postid,absolute=True)
+        except Exception, e:
+            return errorpage("add comment error %s"%e)    
 
 
 @app.route("/post/update")
@@ -69,8 +95,17 @@ class update_post():
     def GET(self):
         pass
 
-@app.route("/post/get")
+@app.route("/post/view/(.*)")
 class get_post():
-    @auth_user
-    def GET(self):
-        pass        
+    def GET(self,uid):
+        try:
+            groups = groupstore.list_groups()
+            post = groupstore.get_content(uid)
+            comments = groupstore.list_comments(uid)
+            return render("post_view.html",
+                groups=groups,
+                post=post,
+                comments=comments,
+                get_user=groupstore.get_user)
+        except Exception,e:
+            return errorpage("error %s"%e)
