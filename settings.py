@@ -38,8 +38,6 @@ class route_app(web.application):
         return wrapper
 
 
-made = markdown.Markdown(safe_mode='escape')
-
 
 """ define memary CacheManager imp """
 memary_manager = CacheManager(cache_regions={
@@ -64,7 +62,7 @@ _lookup = TemplateLookup(directories=['./templates'],
                           cache_impl='beaker',
                           cache_args={'manager':memary_manager } )  
 
-
+pagesize = 30
 
 
 def render(filename,**args):
@@ -74,7 +72,7 @@ def render(filename,**args):
         args["sitename"] = config.get("sitename")
         args["cdate"] = datetime.datetime.now().strftime( "%Y-%m-%d")
         args['session'] = web.ctx.session 
-        args['md'] = made
+        args["ctx"] = web.ctx
         return mytemplate.render(**args)
     except:
         return exceptions.text_error_template().render()

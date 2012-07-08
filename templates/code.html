@@ -17,6 +17,7 @@ $(document).ready(function(){
   <div class="span8">
     <div class="row-fluid">
     <!-- //codes list -->
+    <a class="btn" href="/code/add">发布代码</a> 
     <table class="table">
      <thead>
         <tr>
@@ -55,7 +56,7 @@ $(document).ready(function(){
       <tbody>
        % for lang in langs:
         <tr>
-          <td><a>${lang["name"]}</a></td>
+          <td><a href="/code/category/${lang["name"]}">${lang["name"]}</a></td>
           <td><span class="badge badge">${lang["hits"]}</span></td>
         </tr>
         % endfor

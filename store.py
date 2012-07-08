@@ -45,33 +45,6 @@ def get_option(key,default=None):
         conn.close()
 
 
-PUBLIC_KEY = '494ec9f9cbaf40cfa8d4b44447374d27'
-
-def doauthkey(func):
-    def func_warp(*args,**argkv):
-        authkey = argkv.get("authkey")
-        if not authkey:
-            authkey=PUBLIC_KEY
-        if type(authkey) == unicode:
-            authkey = str(authkey)            
-        conn = get_conn()
-        cur = conn.cursor()
-        try:
-            cur.execute("select authkey,hits from authkeys where authkey=%s",(authkey))
-            keyobjs = cur.fetchone()
-            if not keyobjs:
-                raise Exception('authkey not exists')
-            authkey_hits = keyobjs[0][1]
-            hits = int(authkey_hits) + 1
-            cur.execute("update authkeys set hits = %s where authkey=%s",(hits,authkey))
-            conn.commit()
-            return func(*args,**argkv)
-        finally:
-            cur.close()
-            conn.close()
-    return func_warp        
-
-
 def register(username,password,email):
     if not username or not password or not email:
         raise Exception("username,password,email not empty")
@@ -123,22 +96,42 @@ def login(username,password):
 def initdata():
     conn = get_conn()
     cur = conn.cursor()
-    grps = {"all":"综合讨论",
-            "python":"python编程",
+    grps = {"python":"python编程",
             "php":"php编程",
             "html":"html&css",
             "st2":"sublime text 2小站",
             "vim":"vim小站",
             "emacs":"emacs小站"}
-    langs = "c,c++,java,c#,python,ruby,php,perl,objective-c,vb,javascript, pascal,Lisp,sql,ada,lua,matlab,shell,go"
-    langarray = langs.split(",")
+    langs = {"c":"c",
+             "c++":"cpp",
+             "java":"java",
+             "c#":"cs",
+             "python":"py",
+             "ruby":"rb",
+             "php":"php",
+             "perl":"pl",
+             "objective-c":"c",
+             "vb":"vb",
+             "javascript":"js",
+             "pascal":"pas",
+             "lisp":"lsp",
+             "sql":"sql",
+             "lua":"lua",
+             "matlab":"m",
+             "shell":"sh",
+             "golang":"go"}
     try:
+        count = 0
         cur.execute("delete from langs")
-        for la in langarray:
-            cur.execute("insert into langs (name,hits) values(%s,%s)",(la,0))
+        for k,l in langs.items():
+            count += 1 
+            cur.execute("insert into langs (id,name,ext,hits) values(%s,%s,%s,%s)",(count,k,l,0))
         cur.execute("delete from groups")
+        count = 1
         for k,g in grps.items():
-            cur.execute("insert into groups (name,guid,posts) values(%s,%s,%s)",(g,k,0))        
+            count += 1 
+            cur.execute("insert into groups (id,name,guid,posts) values(%s,%s,%s,%s)",(count,g,k,0))     
+        cur.execute("insert into groups (id,name,guid,posts) values(%s,%s,%s,%s)",(0,"综合讨论","all",0))    
         conn.commit()
     except Exception, e:
         raise e
@@ -148,7 +141,13 @@ def initdata():
 
 
 if __name__ == "__main__":
-    #initdata()
-    register("test2","123456","test@com")
+    # initdata()
+    #register("test2","123456","test@com")
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("select count(*) from posts where id=%s","1")
+    print (cur._executed)
+    cur.close()
+    conn.close()
 
 

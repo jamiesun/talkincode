@@ -5,6 +5,8 @@
 """
 from settings import route_app,render,logger
 from settings import errorpage
+from store import get_conn
+from settings import config
 import web
 import cgi
 import codestore
@@ -14,8 +16,10 @@ import apiapp
 import codeapp
 import groupapp
 import userapp
+import tagsapp
 import store
 import tagstore
+import markdown
 
 
 cgi.maxlen = 10 * 1024 * 1024 # 10MB
@@ -26,6 +30,7 @@ app.mount("/api",apiapp.app)
 app.mount("/code",codeapp.app)
 app.mount("/group",groupapp.app)
 app.mount("/user",userapp.app)
+app.mount("/tags",tagsapp.app)
 '''session defined'''
 # session = web.session.Session(app, web.session.DiskStore('sessions'), {'count': 0})   
 if web.config.get('_session') is None:
@@ -34,11 +39,15 @@ if web.config.get('_session') is None:
 else:
    session = web.config._session
 
-def session_hook():
+made = markdown.Markdown(safe_mode='escape')
+def context_hook():
+    web.ctx.config = config
     web.ctx.session = session
-
-app.add_processor(web.loadhook(session_hook))   
-
+    web.ctx.db = get_conn
+    web.ctx.md = made
+    web.ctx.get_user=groupstore.get_user
+    web.ctx.get_group=groupstore.get_group
+app.add_processor(web.loadhook(context_hook))   
 
 
 @app.route("/index")
@@ -75,9 +84,7 @@ class index():
             posts=posts,
             langs=langs,
             stats=stats,
-            tagset=tagset,
-            get_user=groupstore.get_user,
-            get_group=groupstore.get_group) 
+            tagset=tagset) 
 
 @app.route("/join")
 class register():

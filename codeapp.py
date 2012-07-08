@@ -1,7 +1,9 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import route_app,filter_html,render
+from settings import route_app,filter_html,render,auth_user
+from settings import errorpage
 import codestore
+import groupstore
 import web
 
 app  = route_app()
@@ -18,15 +20,62 @@ class index():
         tops = codestore.list_index(limit=50) 
         return render("code.html",tops = tops,langs=langs) 
 
+@app.route("/add")
+class add_code():
+    @auth_user
+    def GET(self):
+        langs = codestore.list_langs()
+        return render("code_add.html",langs = langs)
+
+    @auth_user
+    def POST(self):
+        user = web.ctx.session.get("user")
+        form = web.input()
+        title = form.get("title")
+        tags = form.get("tags")
+        lang = form.get("lang")
+        content = form.get("content")
+
+        if not title or not lang or not content:
+            return errorpage(u"请输入完整数据")
+        try:
+            if tags :tags = tags[:255]
+            title = title[:255]
+            params = dict(title=title,
+                        lang=lang,
+                        auther=user["username"],
+                        email=user["email"],
+                        tags=tags,
+                        content=content)
+            codestore.add_code(**params)
+            raise web.seeother("/code/",absolute=True)
+        except Exception, e:
+            return errorpage("add code error %s"%e)
+
+
+@app.route("/category/(.*)")
+class index_cat():
+    def GET(self,lang):
+        langs = codestore.list_langs()
+        tops = codestore.list_codes_bylang(lang,limit=50) 
+        return render("code.html",
+            tops = tops,
+            langs=langs)         
+
 
 @app.route("/view/(.*)")
 class code_view():
     def GET(self,uid):
         versions = codestore.list_versions(uid) 
         content = codestore.get_content(uid)
+        posts = groupstore.list_posts_by_codeid(uid)
         if content:
             content["content"] = filter_html(content["content"]) 
-            return render("code_view.html",versions = versions,content=content,pagename=content["title"]) 
+            return render("code_view.html",
+                versions = versions,
+                content=content,
+                pagename=content["title"],
+                posts=posts) 
         else:
             return render("error.html",error="no data")        
 

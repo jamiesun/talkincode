@@ -42,8 +42,8 @@ $(document).ready(function(){
         <p >${topit["content"][:128]}</p>
         <div >
           <span><a href="/group/category/${get_group(topit['groupid'])["guid"]}">
-          ${get_group(topit['groupid'])["name"]}</a> </span>&nbsp;&nbsp;
-          <span><a href="#">@${get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
+          ${ctx.get_group(topit['groupid'])["name"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
           <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
            % for tag in topit["tags"].split(","):
             <span >${tag}</span>
@@ -71,7 +71,7 @@ $(document).ready(function(){
        % for group in groups:
         <tr>
           <td><a href="/group/category/${group.get("guid")}">${group["name"]}</a></td>
-          <td><span class="badge badge">${group["posts"]}</span></td>
+          <!--<td><span class="badge badge">${group["posts"]}</span></td>-->
         </tr>
         % endfor
       </tbody>

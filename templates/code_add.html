@@ -1,0 +1,36 @@
+<%inherit file="base.html"/>
+
+<%def name="head()"> 
+</%def> 
+
+
+<%def name="body()">
+
+<div class="container">
+
+<form class="well span8" action="/code/add" method="post" autocomplete="on">
+<fieldset>
+  <label>标题</label>
+  <input name="title" type="text"  autofocus="autofocus" required="required" class="span6" placeholder="输入标题">
+  <label>标签</label>
+  <input name="tags" type="text" class="span6" placeholder="输入标签,使用英文逗号分隔">
+  <label>选择编程语言</label>
+  <div class="controls">
+  % for lang in langs:
+      <label class="checkbox inline">
+        <input type="radio" name="lang"  value="${lang["ext"]}" >${lang["name"]}
+      </label>
+  % endfor
+  </div>  
+    <br/>
+  <label>代码内容</label>
+   <textarea class="input-xlarge" id="content" name="content" rows="9" style="margin: 0px; width: 680px; height: 280px; "></textarea>  
+  <br/>
+  <button type="submit" class="btn">立即发布</button>
+  <button type="button" class="btn" onclick="history.go(-1);">取消发布</button>
+  </fieldset>
+</form>
+
+</div>
+
+</%def> 

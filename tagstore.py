@@ -1,13 +1,13 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import logger
+from settings import logger,pagesize
 from store import get_conn,todict
 import uuid
 import datetime
 
 
 
-def get_tags(limit=30):
+def get_tags(limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
     tagset = {}

@@ -11,6 +11,7 @@
 <form class="well span8" action="/group/post/add" method="post" autocomplete="on">
 <fieldset>
   <label>标题</label>
+  <input type="hidden" name="codeid" value="${codeid or 0}">
   <input name="title" type="text"  autofocus="autofocus" required="required" class="span6" placeholder="输入标题">
   <label>标签</label>
   <input name="tags" type="text" class="span6" placeholder="输入标签,使用英文逗号分隔">

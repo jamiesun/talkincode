@@ -1,11 +1,12 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import logger,cache
+from settings import logger,cache,pagesize
 from store import get_conn,todict
 import uuid
 import datetime
+import web
 
-@cache.cache('get_group_func', expire=3600)
+#@cache.cache('get_group_func', expire=3600)
 def get_group(gid):
     conn = get_conn()
     cur = conn.cursor()
@@ -15,14 +16,14 @@ def get_group(gid):
         if ones :
             return todict(ones,cur.description)
         else:
-            raise Exception("no result")
+            return {"id":0,"name":u"综合讨论","guid":"all","posts":0}
     except:
         raise
     finally:
         cur.close()
         conn.close()    
 
-@cache.cache('get_user_func', expire=3600)
+#@cache.cache('get_user_func', expire=3600)
 def get_user(uid):
     conn = get_conn()
     cur = conn.cursor()
@@ -39,7 +40,7 @@ def get_user(uid):
         cur.close()
         conn.close()   
 
-@cache.cache('get_post_total_func', expire=3600)
+#@cache.cache('get_post_total_func', expire=3600)
 def get_post_stats(guid=None):
     conn = get_conn()
     cur = conn.cursor()
@@ -78,12 +79,12 @@ def list_groups():
         conn.close()
 
 #@cache.cache('list_posts_by_guid_func', expire=3600)
-def list_posts_by_guid(guid,page=1,limit=30):
+def list_posts_by_guid(guid,page=1,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
-    cpage = page
+    offset = 0
     if page >= 1:
-        cpage = page-1    
+        offset = (page -1) * limit     
     try:      
         cur.execute("""
             SELECT p.id,p.groupid,p.userid,p.title,p.tags,p.description,
@@ -92,7 +93,7 @@ def list_posts_by_guid(guid,page=1,limit=30):
             WHERE p.groupid = g.id AND g.guid = %s
             ORDER BY modified DESC
             LIMIT %s,%s        
-            """,(guid,cpage,limit))
+            """,(guid,offset,limit))
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except:
@@ -101,12 +102,62 @@ def list_posts_by_guid(guid,page=1,limit=30):
         cur.close()
         conn.close()            
 
-def list_posts(gid=None,page=1,limit=30):
+def list_posts_by_tag(tag,page=1,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
-    cpage = page
+    offset = 0
     if page >= 1:
-        cpage = page-1
+        offset = (page -1) * limit     
+    try:      
+        cur.execute("""
+            SELECT p.id,p.groupid,p.userid,p.title,p.tags,p.description,
+             p.content, p.STATUS,p.hits,p.created,p.modified
+            FROM posts p
+            WHERE p.tags like %s
+            ORDER BY modified DESC
+            LIMIT %s,%s        
+            """,('%%%s%%'%tag,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except:
+        raise
+    finally:
+        cur.close()
+        conn.close()     
+
+def list_posts_by_codeid(cid,page=1,limit=pagesize):
+    conn = get_conn()
+    cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit     
+    try:      
+        cur.execute("""
+            SELECT id,groupid,userid,codeid,title,tags,description,
+             content, STATUS,hits,created,modified
+            FROM posts p
+            WHERE p.codeid = %s
+            ORDER BY modified DESC
+            LIMIT %s,%s        
+            """,(cid,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except:
+        raise
+    finally:
+        cur.close()
+        conn.close()                  
+
+def list_posts(gid=None,page=1,limit=pagesize):
+    conn = get_conn()
+    cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit    
     try:
         if gid:
             cur.execute("""
@@ -115,14 +166,14 @@ def list_posts(gid=None,page=1,limit=30):
                 FROM posts  
                 WHERE groupid = %s order by modified desc
                 LIMIT %s,%s            
-                """,(gid,cpage,limit))
+                """,(gid,offset,limit))
         else:
              cur.execute("""
                 SELECT id,groupid,userid,title,tags,description,
                 content,status,hits,created,modified
                 FROM posts order by modified desc
                 LIMIT %s,%s            
-                """,(cpage,limit))
+                """,(offset,limit))
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except Exception,e:
@@ -166,7 +217,7 @@ def get_content(uid):
         cur.close()
         conn.close()
 
-def add_post(gid,userid,title=None,tags=None,content=None):
+def add_post(gid,userid,title=None,tags=None,content=None,codeid=None):
     logger.info("add post title=%s"%(title))
     conn = get_conn()
     cur = conn.cursor()
@@ -179,9 +230,9 @@ def add_post(gid,userid,title=None,tags=None,content=None):
         create_time = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
         uid = uuid.uuid4().hex
         cur.execute("""insert into posts \
-            (id,groupid,title,userid,tags,content,created,modified)
-             values(%s,%s,%s,%s,%s,%s,%s,%s)""",
-             (uid,gid,title,userid,tags,content,create_time,create_time))
+            (id,groupid,codeid,title,userid,tags,content,created,modified)
+             values(%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+             (uid,gid,codeid,title,userid,tags,content,create_time,create_time))
         conn.commit()
     except Exception,e:
         conn.rollback()
@@ -265,19 +316,19 @@ def add_comment(postid,content,userid=None,author=None,email=None,url=None,ip=No
         cur.close()
         conn.close()
 
-def list_comments(pid,page=1,limit=30):
+def list_comments(pid,page=1,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
-    cpage = page
+    offset = 0
     if page >= 1:
-        cpage = page-1
+        offset = (page -1) * limit    
     try:
         cur.execute("""
             SELECT id,postid,author,content,userid,url,created
             FROM comments
             WHERE postid = %s order by created desc
             LIMIT %s,%s            
-            """,(pid,cpage,limit))
+            """,(pid,offset,limit))
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except Exception,e:

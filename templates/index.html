@@ -22,9 +22,9 @@ $(document).ready(function(){
     <tr>
       <th> 热门编程语言： </th>
       % for lang in langs[:8]:
-      <th><a href="#td">${lang["name"]}</a></th>
+      <th><a href="/code/category/${lang["name"]}">${lang["name"]}</a></th>
       % endfor
-      <th><a class="btn btn-small" href="#">分享我的代码</a> </th>
+      <th><a class="btn btn-small" href="/code/add">分享我的代码</a> </th>
       </tr>
    </thead>       
   </table>
@@ -75,9 +75,9 @@ $(document).ready(function(){
         <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
         <p >${topit["content"][:128]}</p>
         <div >
-          <span><a href="/group/category/${get_group(topit['groupid'])["guid"]}">
-          ${get_group(topit['groupid'])["name"]}</a> </span>&nbsp;&nbsp;
-          <span><a href="#">@${get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="/group/category/${ctx.get_group(topit['groupid'])["guid"]}">
+          ${ctx.get_group(topit['groupid'])["name"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
           <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
            % for tag in topit["tags"].split(","):
             <span >${tag}</span>
@@ -105,7 +105,7 @@ $(document).ready(function(){
       <tbody>
        % for tag in tagset:
         <tr>
-          <td><a href="/tags/${tag[0]}">${tag[0]}</a></td>
+          <td><a href="/tags/list/${tag[0]}">${tag[0]}</a></td>
           <td><span class="badge badge">${tag[1]}</span></td>
         </tr>
         % endfor

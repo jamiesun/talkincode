@@ -1,17 +1,17 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import logger
+from settings import logger,pagesize
 from store import get_conn,todict
 import uuid
 import datetime
-
+import web
 
 
 def list_langs():
     conn = get_conn()
     cur = conn.cursor()
     try:
-        cur.execute("select name,hits from langs order by hits desc")
+        cur.execute("select name,ext,hits from langs order by hits desc")
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except Exception,e:
@@ -52,16 +52,19 @@ def add_code(pid=0,title=None,auther=None,email=None, tags=None,
         conn.close()
 
 
-def list_index(keyword=None,limit=1000):
+def list_index(keyword=None,page=1,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit    
     try:
         if keyword:
             sql = "select id,title,auther,email,tags,lang,hits,filename,create_time from codes\
-             where title like '%%%s%%' order by create_time desc limit 0,%s"%(keyword,limit)
+             where title like '%%%s%%' order by create_time desc limit %s,%s"%(keyword,offset,limit)
         else:
             sql = "select id,title,auther,email,tags,lang,hits,filename,create_time\
-             from codes order by create_time desc limit 0,%s"%limit
+             from codes order by create_time desc limit %s,%s"%(offset,limit)
         cur.execute(sql)
 
         result = cur.fetchall()
@@ -73,7 +76,51 @@ def list_index(keyword=None,limit=1000):
         cur.close()
         conn.close()
 
-def list_versions(pid,limit=50):
+def list_codes_bylang(lang,page=1,limit=pagesize):
+    conn = get_conn()
+    cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit
+    try:
+        cur.execute("""SELECT c.id,title,auther,email,tags,lang,c.hits,filename,create_time
+                        FROM codes c,langs l
+                        WHERE c.lang = l.ext and l.name = %s
+                        order by create_time desc limit %s,%s""",(lang,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except Exception,e:
+        logger.error('list_index error %s'%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()      
+
+def list_codes_bytags(tag,page=1,limit=pagesize):
+    conn = get_conn()
+    cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit
+    try:
+        cur.execute("""SELECT id,title,auther,email,tags,lang,hits,filename,create_time
+                        FROM codes 
+                        WHERE tags like %s
+                        order by id desc limit %s,%s""",('%%%s%%'%tag,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except Exception,e:
+        logger.error('list_index error %s'%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()              
+
+def list_versions(pid,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
     try:
@@ -104,7 +151,7 @@ def get_content(uid):
         
         cur.execute("update codes set hits = %s where id=%s",(hits,uid))
         conn.commit()            
-        cur.execute("select title,auther,tags,lang,content,hits,create_time\
+        cur.execute("select id,title,auther,tags,lang,content,hits,create_time\
          from codes where id = %s",uid)
         ones =  cur.fetchone()
         if ones :
