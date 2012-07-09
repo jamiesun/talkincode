@@ -6,12 +6,14 @@ import uuid
 import datetime
 import web
 
-#@cache.cache('get_group_func', expire=3600)
+@cache.cache('get_group_func', expire=3600)
 def get_group(gid):
     conn = get_conn()
     cur = conn.cursor()
     try:      
         cur.execute(" select id,name,description,guid,posts from groups  WHERE id = %s",gid)
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         ones =  cur.fetchone()
         if ones :
             return todict(ones,cur.description)
@@ -23,17 +25,38 @@ def get_group(gid):
         cur.close()
         conn.close()    
 
-#@cache.cache('get_user_func', expire=3600)
+@cache.cache('get_user_func', expire=3600)
 def get_user(uid):
     conn = get_conn()
     cur = conn.cursor()
     try:      
         cur.execute(" select id,username,email,url,authkey,lastlogin from users  WHERE id = %s",uid)
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         ones =  cur.fetchone()
         if ones :
             return todict(ones,cur.description)
         else:
             raise Exception("no result")
+    except:
+        raise
+    finally:
+        cur.close()
+        conn.close()   
+
+@cache.cache('get_user_byauthkey_func', expire=3600)
+def get_user_byauthkey(authkey):
+    conn = get_conn()
+    cur = conn.cursor()
+    try:      
+        cur.execute(" select id,username,email,url,authkey,lastlogin from users  WHERE authkey = %s",authkey)
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
+        ones =  cur.fetchone()
+        if ones :
+            return todict(ones,cur.description)
+        else:
+            raise Exception("authkey invalid")
     except:
         raise
     finally:
@@ -53,6 +76,8 @@ def get_post_stats(guid=None):
                 """,guid)
         else:
             cur.execute(" select count(*) as total, sum(hits) as hits_total from posts ")
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)            
         ones =  cur.fetchone()
         if ones :
             return todict(ones,cur.description)
@@ -64,11 +89,14 @@ def get_post_stats(guid=None):
         cur.close()
         conn.close()            
 
+@cache.cache('list_groups_func', expire=3600)
 def list_groups():
     conn = get_conn()
     cur = conn.cursor()
     try:
         cur.execute("select id,name,description,guid,posts from groups order by posts desc")
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except Exception,e:
@@ -94,6 +122,8 @@ def list_posts_by_guid(guid,page=1,limit=pagesize):
             ORDER BY modified DESC
             LIMIT %s,%s        
             """,(guid,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except:
@@ -161,7 +191,7 @@ def list_posts(gid=None,page=1,limit=pagesize):
     try:
         if gid:
             cur.execute("""
-                SELECT id,groupid,userid,title,tags,description,
+                SELECT id,groupid,codeid,userid,title,tags,description,
                 content,status,hits,created,modified
                 FROM posts  
                 WHERE groupid = %s order by modified desc
@@ -169,11 +199,13 @@ def list_posts(gid=None,page=1,limit=pagesize):
                 """,(gid,offset,limit))
         else:
              cur.execute("""
-                SELECT id,groupid,userid,title,tags,description,
+                SELECT id,groupid,codeid,userid,title,tags,description,
                 content,status,hits,created,modified
                 FROM posts order by modified desc
                 LIMIT %s,%s            
                 """,(offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)               
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except Exception,e:
@@ -183,7 +215,7 @@ def list_posts(gid=None,page=1,limit=pagesize):
         cur.close()
         conn.close()
 
-
+@cache.cache('group_get_content_func', expire=3600)
 def get_content(uid):
     conn = get_conn()
     cur = conn.cursor()
@@ -200,11 +232,13 @@ def get_content(uid):
         cur.execute("update posts set hits = %s where id=%s",(hits,uid))
         conn.commit()            
         cur.execute("""
-            SELECT id,groupid,userid,title,tags,description,
+            SELECT id,groupid,codeid,userid,title,tags,description,
             content,status,hits,created,modified
             FROM posts  
             WHERE id = %s    
-            """,uid)
+            """,uid)     
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)                  
         ones =  cur.fetchone()
         if ones :
             return todict(ones,cur.description)
@@ -233,6 +267,8 @@ def add_post(gid,userid,title=None,tags=None,content=None,codeid=None):
             (id,groupid,codeid,title,userid,tags,content,created,modified)
              values(%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
              (uid,gid,codeid,title,userid,tags,content,create_time,create_time))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         conn.commit()
     except Exception,e:
         conn.rollback()
@@ -253,6 +289,8 @@ def update_post(uid,content=None):
     try:
         modified = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
         cur.execute("update posts set content= %s modified = %s  where id = %s",(content,modified,uid))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         conn.commit()
     except Exception,e:
         conn.rollback()
@@ -271,6 +309,8 @@ def update_post_tags(uid,tags=None):
     try:
         modified = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
         cur.execute("update posts set tags= %s modified = %s where id = %s",(tags,modified,uid))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         conn.commit()
     except Exception,e:
         conn.rollback()
@@ -287,6 +327,8 @@ def del_content(uid):
         return
     try:
         cur.execute("delete from posts where id=%s",(uid))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         conn.commit()            
     except:
         raise
@@ -308,6 +350,8 @@ def add_comment(postid,content,userid=None,author=None,email=None,url=None,ip=No
         (id, postid, author,content, userid, email, url, ip, agent,status, created)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) """,
         (uid,postid,author,content,userid,email,url,ip,agent,status,modified))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         conn.commit()            
     except Exception,e:
         logger.error("add_comment error %s"%e)
@@ -329,6 +373,8 @@ def list_comments(pid,page=1,limit=pagesize):
             WHERE postid = %s order by created desc
             LIMIT %s,%s            
             """,(pid,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
         result = cur.fetchall()
         return [todict(rt,cur.description) for rt in result]
     except Exception,e:

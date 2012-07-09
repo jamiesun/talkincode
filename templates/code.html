@@ -34,12 +34,20 @@ $(document).ready(function(){
           <td><span class="badge">${topit['hits']}</span></td>
           <td><span class="label label-info">${topit['lang']}</span></td>
           <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
-          <td><a href="#">@${topit['auther']}</a></td>
+          <td><a href="#">@${topit['author']}</a></td>
           <td>${topit['create_time']}</td>
         </tr>
       % endfor
       </tbody>
     </table>
+    <ul class="pager">
+    % if page > 1:
+      <li><a href="${ctx.env.get("PATH_INFO")}?page=${page-1}">上一页</a></li>
+    % endif
+    % if tops and len(tops)>= ctx.pagesize: 
+      <li><a href="${ctx.env.get("PATH_INFO")}?page=${page+1}">下一页</a></li>
+    % endif
+    </ul> 
      <!-- //end codes list -->
     </div>
   </div>

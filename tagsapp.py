@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import route_app,filter_html,render
+from settings import route_app,render
 import tagstore
 import groupstore
 import codestore
@@ -22,8 +22,8 @@ class index():
 class index():
     def GET(self,tag):
         langs = codestore.list_langs()   
-        posts = groupstore.list_posts_by_tag(tag)  
-        codes = codestore.list_codes_bytags(tag)
+        posts = groupstore.list_posts_by_tag(tag,limit=50)  
+        codes = codestore.list_codes_bytags(tag,limit=50)
         tags = tagstore.get_tags()
         return render("tags_list.html",
             langs = langs,

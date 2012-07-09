@@ -16,26 +16,30 @@ class routeto():
 @app.route("/")
 class index():
     def GET(self):
+        page = int(web.input().get("page",1)) 
         groups = groupstore.list_groups()
         stats = groupstore.get_post_stats()
-        tops = groupstore.list_posts()
+        tops = groupstore.list_posts(page=page)
         return render("group.html",
             tops = tops,
             groups=groups,
             stats=stats,
+            page=page,
             get_user=groupstore.get_user,
             get_group=groupstore.get_group) 
 
 @app.route("/category/(.*)")
 class index():
     def GET(self,guid):
+        page = int(web.input().get("page",1)) 
         groups = groupstore.list_groups()
         stats = groupstore.get_post_stats(guid)
-        tops = groupstore.list_posts_by_guid(guid)
+        tops = groupstore.list_posts_by_guid(guid,page=page)
         return render("group.html",
             tops = tops,
             groups=groups,
             stats=stats,
+            page=page,
             get_user=groupstore.get_user,
             get_group=groupstore.get_group) 
 
@@ -108,17 +112,20 @@ class update_post():
 class get_post():
     def GET(self,uid):
         try:
+            page = int(web.input().get("page",1)) 
             groups = groupstore.list_groups()
             post = groupstore.get_content(uid)
             codeid = post.get("codeid")
+            print codeid
             code = None
             if codeid:
                 code = codestore.get_content(codeid)
-            comments = groupstore.list_comments(uid)
+            comments = groupstore.list_comments(uid,page=page)
             return render("post_view.html",
                 groups=groups,
                 post=post,
                 comments=comments,
+                page=page,
                 code=code)
         except Exception,e:
             return errorpage("error %s"%e)

@@ -20,7 +20,7 @@ $(document).ready(function(){
       <h2>${content["title"]}</h2>
     </div>      
     <p>
-        <a>@${content['auther']}</a>&nbsp;&nbsp;
+        <a>@${content['author']}</a>&nbsp;&nbsp;
         编程语言: ${content['lang']}&nbsp;&nbsp;
         浏览次数: ${content['hits']}&nbsp;&nbsp;
       % for tag in content["tags"].split(","):

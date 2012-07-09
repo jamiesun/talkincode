@@ -16,9 +16,10 @@ class routeto():
 @app.route("/")
 class index():
     def GET(self):
+        page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
-        tops = codestore.list_index(limit=50) 
-        return render("code.html",tops = tops,langs=langs) 
+        tops = codestore.list_index(page=page) 
+        return render("code.html",tops = tops,langs=langs,page=page) 
 
 @app.route("/add")
 class add_code():
@@ -43,7 +44,7 @@ class add_code():
             title = title[:255]
             params = dict(title=title,
                         lang=lang,
-                        auther=user["username"],
+                        author=user["username"],
                         email=user["email"],
                         tags=tags,
                         content=content)
@@ -56,10 +57,12 @@ class add_code():
 @app.route("/category/(.*)")
 class index_cat():
     def GET(self,lang):
+        page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
-        tops = codestore.list_codes_bylang(lang,limit=50) 
+        tops = codestore.list_codes_bylang(lang,page=page) 
         return render("code.html",
             tops = tops,
+            page=page,
             langs=langs)         
 
 
@@ -83,6 +86,7 @@ class code_view():
 @app.route("/search")
 class code_search():
     def POST(self):
+        page = int(web.input().get("page",1)) 
         keyword = web.input().get("keyword")
         if not keyword:
             raise web.seeother("/")

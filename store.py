@@ -84,6 +84,9 @@ def login(username,password):
 
         if not user:
             raise Exception("user not exists")
+        lastlogin = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
+        cur.execute("update users set lastlogin = %s where id= %s",(lastlogin,user[0]))
+        conn.commit()
         return dict(id=user[0],username=user[1],email=user[2],url=user[3],authkey=user[4],lastlogin=user[5])
     except Exception,e:
         logger.error("register error,%s"%e)

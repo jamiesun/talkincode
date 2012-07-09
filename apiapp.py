@@ -2,27 +2,32 @@
 #coding:utf-8
 from settings import route_app,logger
 import codestore
-from store import get_conn
+import groupstore
+import store 
 import json
 import web
+import traceback
 
-PUBLIC_KEY = '494ec9f9cbaf40cfa8d4b44447374d27'
+app  = route_app()
+
+def jsonResult(**kwargs):
+    return json.dumps(kwargs)
 
 def doauthkey(func):
     def func_warp(*args,**argkv):
         authkey = web.input().get("authkey")
         if not authkey:
-            authkey=PUBLIC_KEY
+            return jsonResult(error="authkey can not empty") 
         if type(authkey) == unicode:
             authkey = str(authkey)            
-        conn = get_conn()
+        conn = store.get_conn()
         cur = conn.cursor()
         try:
             cur.execute("select authkey,hits from authkeys where authkey=%s",(authkey))
             keyobjs = cur.fetchone()
             if not keyobjs:
-                raise Exception('authkey not exists')
-            authkey_hits = keyobjs[0][1]
+                return jsonResult(error="authkey not exists") 
+            authkey_hits = keyobjs[1]
             hits = int(authkey_hits) + 1
             cur.execute("update authkeys set hits = %s where authkey=%s",(hits,authkey))
             conn.commit()
@@ -30,9 +35,27 @@ def doauthkey(func):
         finally:
             cur.close()
             conn.close()
-    return func_warp    
+    return func_warp        
 
-app  = route_app()
+@app.route("/register")
+class register():
+    def POST(self):
+        form = web.input()
+        username = form.get("username")
+        password = form.get("password")
+        email = form.get("email")
+        if not username or not password:
+            return jsonResult(error=u"username,password can't empty") 
+        if not email:
+            return jsonResult(error=u"email can't empty")
+        try:
+            user = store.register(username,password,email)
+            usession = web.ctx.session
+            usession["user"] = user 
+            return jsonResult(username=username,email=email,authkey=user["authkey"])
+        except Exception,e:
+            traceback.print_exc()
+            return jsonResult(error="register error %s"%e)
 
 @app.route("/code/add")
 class code_add():
@@ -41,7 +64,7 @@ class code_add():
         forms = web.input()
         params = dict(pid=forms.get("pid"),
                       title = forms.get("title"),
-                      auther = forms.get("auther"),
+                      author = forms.get("author"),
                       email = forms.get("email"),
                       tags = forms.get("tagstr"),
                       content = forms.get("content"),
@@ -50,30 +73,95 @@ class code_add():
                       lang=forms.get("lang"))
         try:
             codestore.add_code(**params)
-            return "ok"
+            return jsonResult(result="code publish success")
         except:
-            return "error"
+            return jsonResult(error="code publish fail")
 
 @app.route("/code/index")
 class code_index():
-    @doauthkey
     def GET(self):
-        keyword = web.input().get("q") or ''
-        limit = web.input().get("limit") or 1000
-
+        keyword = web.input().get("q") 
+        limit = int(web.input().get("limit",1000))
         try:
             tops = codestore.list_index(keyword=keyword,limit=limit) 
             return json.dumps(tops)
         except Exception,e:
             logger.error("query data error %s"%e)
-            return json.dumps({"error":"query data error "})         
+            return jsonResult(error="query data error ")         
 
 @app.route("/code/get/(.*)")
 class code_get():
-    @doauthkey
     def GET(self,uid):
         try:
             content = codestore.get_content(uid)
             return json.dumps(content)
         except:
-            return json.dumps({"error":"query data error"})  
+            return jsonResult(error="query data error")  
+
+@app.route("/post/add")
+class add_post():
+    @doauthkey
+    def POST(self):
+        form = web.input()
+        authkey = form.get("authkey")
+        user = groupstore.get_user_byauthkey(authkey)
+        userid = user.get("id")
+        codeid = form.get("codeid")
+        title = form.get("title")
+        tags = form.get("tags")
+        gid = form.get("gid",0)
+        content = form.get("content")
+        if not title or not content:
+            return jsonResult(error="title,content can not empty")
+        try:
+            if tags :tags = tags[:255]
+            title = title[:255]
+            groupstore.add_post(gid,userid,title,tags,content,codeid)
+            raise jsonResult(result="post success")
+        except Exception, e:
+            return jsonResult(error="post fail %s"%e)
+
+@app.route("/comment/add")
+class add_comment():
+    @doauthkey
+    def POST(self):
+        try:
+            form = web.input()
+            authkey = form.get("authkey")
+            user = groupstore.get_user_byauthkey(authkey)
+            userid = user.get("id")
+            content = form.get("content")
+            postid = form.get("postid")
+            ip = web.ctx.ip
+            agent =  web.ctx.env.get('HTTP_USER_AGENT')
+            if not content:
+                return jsonResult(error="content can not empty")
+            groupstore.add_comment(postid,content,userid=userid,ip=ip,agent=agent,status=1)
+            return jsonResult(result="post comment success")
+        except Exception, e:
+            return jsonResult(error="add comment error %s"%e)    
+
+
+@app.route("/post/index")
+class post_index():
+    def GET(self):
+        gid = web.input().get("gid")
+        try:
+            tops = groupstore.list_posts(gid=gid,limit=100) 
+            return json.dumps(tops)
+        except Exception,e:
+            return jsonResult(error="query post fail %s"%e)
+
+@app.route("/post/get/(.*)")
+class get_post():
+    def GET(self,uid):
+        try:
+            post = groupstore.get_content(uid)
+            comments = groupstore.list_comments(uid,limit=100)
+            return jsonResult(post=post,comments=comments)
+        except Exception,e:
+            return jsonResult(error="error %s"%e)
+
+
+if  __name__ == "__main__":
+    print jsonResult(name="sd",sfd="sdf")

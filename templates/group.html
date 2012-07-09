@@ -51,9 +51,17 @@ $(document).ready(function(){
         </div>             
         </td>
         </tr>
-    % endfor
+    % endfor 
     </tbody>
    </table>
+    <ul class="pager">
+    % if page > 1:
+      <li><a href="${ctx.env.get("PATH_INFO")}?page=${page-1}">上一页</a></li>
+    % endif
+    % if tops and len(tops)>= ctx.pagesize: 
+      <li><a href="${ctx.env.get("PATH_INFO")}?page=${page+1}">下一页</a></li>
+    % endif
+    </ul>
    <!-- //end codes list -->
   </div>
   </div>

@@ -19,10 +19,10 @@ $(document).ready(function(){
     <div class="page-header">
       <h3>${post["title"]}</h3>
     </div>  
-    <div class="well"> 
     % if code :
-     <p>${code["title"]}<p>
-    % endif
+     <div class="alert alert-success">相关代码：<a href="/code/view/${code["id"]}">${code["title"]}</a></div>
+    % endif    
+    <div class="well"> 
     <p >
      <a href="#">@${ctx.get_user(post['userid'])["username"]}</a> &nbsp;&nbsp;标签：
       % for tag in post["tags"].split(","):
@@ -57,6 +57,14 @@ $(document).ready(function(){
     % endfor
     </tbody>
    </table>
+       <ul class="pager">
+      % if page > 1:
+        <li><a href="${ctx.env.get("PATH_INFO")}?page=${page-1}">上一页</a></li>
+      % endif
+      % if comments and  len(comments)>= ctx.pagesize: 
+        <li><a href="${ctx.env.get("PATH_INFO")}?page=${page+1}">下一页</a></li>
+      % endif
+      </ul>
     <!-- 评论表单-->
     <form class="well" action="/group/comment/add" method="post" autocomplete="on">
     <fieldset>

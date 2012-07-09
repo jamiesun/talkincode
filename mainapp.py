@@ -6,7 +6,7 @@
 from settings import route_app,render,logger
 from settings import errorpage
 from store import get_conn
-from settings import config
+from settings import config,pagesize
 import web
 import cgi
 import codestore
@@ -42,6 +42,7 @@ else:
 made = markdown.Markdown(safe_mode='escape')
 def context_hook():
     web.ctx.config = config
+    web.ctx.pagesize = pagesize
     web.ctx.session = session
     web.ctx.db = get_conn
     web.ctx.md = made
