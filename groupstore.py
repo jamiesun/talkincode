@@ -116,7 +116,7 @@ def list_posts_by_guid(guid,page=1,limit=pagesize):
     try:      
         cur.execute("""
             SELECT p.id,p.groupid,p.userid,p.title,p.tags,p.description,
-             p.content, p.STATUS,p.hits,p.created,p.modified
+             p.content, p.STATUS,p.hits,p.created,p.modified,p.via
             FROM posts p,groups g
             WHERE p.groupid = g.id AND g.guid = %s
             ORDER BY modified DESC
@@ -141,7 +141,7 @@ def list_posts_by_tag(tag,page=1,limit=pagesize):
     try:      
         cur.execute("""
             SELECT p.id,p.groupid,p.userid,p.title,p.tags,p.description,
-             p.content, p.STATUS,p.hits,p.created,p.modified
+             p.content, p.STATUS,p.hits,p.created,p.modified,p.via
             FROM posts p
             WHERE p.tags like %s
             ORDER BY modified DESC
@@ -166,7 +166,7 @@ def list_posts_by_codeid(cid,page=1,limit=pagesize):
     try:      
         cur.execute("""
             SELECT id,groupid,userid,codeid,title,tags,description,
-             content, STATUS,hits,created,modified
+             content, STATUS,hits,created,modified,via
             FROM posts p
             WHERE p.codeid = %s
             ORDER BY modified DESC
@@ -192,7 +192,7 @@ def list_posts(gid=None,page=1,limit=pagesize):
         if gid:
             cur.execute("""
                 SELECT id,groupid,codeid,userid,title,tags,description,
-                content,status,hits,created,modified
+                content,status,hits,created,modified,via
                 FROM posts  
                 WHERE groupid = %s order by modified desc
                 LIMIT %s,%s            
@@ -200,7 +200,7 @@ def list_posts(gid=None,page=1,limit=pagesize):
         else:
              cur.execute("""
                 SELECT id,groupid,codeid,userid,title,tags,description,
-                content,status,hits,created,modified
+                content,status,hits,created,modified,via
                 FROM posts order by modified desc
                 LIMIT %s,%s            
                 """,(offset,limit))
@@ -226,7 +226,7 @@ def search_posts(keyword=None,page=1,limit=pagesize):
             return None
         cur.execute("""
             SELECT p.id,groupid,codeid,userid,u.username,title,tags,description,
-            content,p.status,hits,p.created,modified
+            content,p.status,hits,p.created,modified,via
             FROM posts p,users u
             WHERE title like %s
             and p.userid = u.id
@@ -253,7 +253,7 @@ def get_content(uid):
         postobjs = cur.fetchone()   
 
         if not postobjs:
-            raise Exception('post not exists')         
+            return None      
 
         post_hits = postobjs[0]
         hits = (int(post_hits) + 1)
@@ -261,10 +261,10 @@ def get_content(uid):
         cur.execute("update posts set hits = %s where id=%s",(hits,uid))
         conn.commit()            
         cur.execute("""
-            SELECT id,groupid,codeid,userid,title,tags,description,
-            content,status,hits,created,modified
-            FROM posts  
-            WHERE id = %s    
+            SELECT p.id,groupid,codeid,userid,u.username,title,tags,description,
+            content,p.status,hits,p.created,modified,via
+            FROM posts p,users u  
+            WHERE p.userid = u.id and p.id = %s    
             """,uid)     
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)                  
@@ -280,7 +280,7 @@ def get_content(uid):
         cur.close()
         conn.close()
 
-def add_post(gid,userid,title=None,tags=None,content=None,codeid=None):
+def add_post(gid,userid,title=None,tags=None,content=None,codeid=None,via=None):
     logger.info("add post title=%s"%(title))
     conn = get_conn()
     cur = conn.cursor()
@@ -293,9 +293,9 @@ def add_post(gid,userid,title=None,tags=None,content=None,codeid=None):
         create_time = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
         uid = uuid.uuid4().hex
         cur.execute("""insert into posts \
-            (id,groupid,codeid,title,userid,tags,content,created,modified)
-             values(%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-             (uid,gid,codeid,title,userid,tags,content,create_time,create_time))
+            (id,groupid,codeid,title,userid,tags,content,created,modified,via)
+             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+             (uid,gid,codeid,title,userid,tags,content,create_time,create_time,via))
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)        
         conn.commit()
@@ -365,7 +365,7 @@ def del_content(uid):
         cur.close()
         conn.close()
 
-def add_comment(postid,content,userid=None,author=None,email=None,url=None,ip=None,agent=None,status=0):
+def add_comment(postid,content,userid=None,author=None,email=None,url=None,ip=None,agent=None,status=0,via=None):
     conn = get_conn()
     cur = conn.cursor()
     try:
@@ -376,9 +376,9 @@ def add_comment(postid,content,userid=None,author=None,email=None,url=None,ip=No
         uid = uuid.uuid4().hex
         cur.execute("""
         INSERT INTO comments
-        (id, postid, author,content, userid, email, url, ip, agent,status, created)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) """,
-        (uid,postid,author,content,userid,email,url,ip,agent,status,modified))
+        (id, postid, author,content, userid, email, url, ip, agent,status, created,via)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s) """,
+        (uid,postid,author,content,userid,email,url,ip,agent,status,modified,via))
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)        
         conn.commit()            
@@ -397,7 +397,7 @@ def list_comments(pid,page=1,limit=pagesize):
         offset = (page -1) * limit    
     try:
         cur.execute("""
-            SELECT id,postid,author,content,userid,url,created
+            SELECT id,postid,author,content,userid,url,created,via
             FROM comments
             WHERE postid = %s order by created asc
             LIMIT %s,%s            

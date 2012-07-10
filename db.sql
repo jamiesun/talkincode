@@ -3,7 +3,7 @@
 -- Server version:               5.5.24 - MySQL Community Server (GPL)
 -- Server OS:                    Win64
 -- HeidiSQL version:             7.0.0.4160
--- Date/time:                    2012-07-10 01:15:54
+-- Date/time:                    2012-07-11 00:20:24
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS `codes` (
   `filename` varchar(255) DEFAULT NULL,
   `hits` int(11) DEFAULT '0',
   `create_time` varchar(19) DEFAULT NULL,
+  `via` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -82,6 +83,7 @@ CREATE TABLE IF NOT EXISTS `comments` (
   `agent` varchar(128) DEFAULT NULL,
   `status` int(1) NOT NULL,
   `created` varchar(19) NOT NULL,
+  `via` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -144,6 +146,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
   `hits` int(10) NOT NULL DEFAULT '0',
   `created` varchar(19) NOT NULL,
   `modified` varchar(19) NOT NULL,
+  `via` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `created` (`created`),
   KEY `modified` (`modified`)

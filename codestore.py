@@ -24,7 +24,7 @@ def list_langs():
         conn.close()
 
 def add_code(pid=0,title=None,author=None,email=None, tags=None,
-             content=None,lang=None,filename=None,authkey=None):
+             content=None,lang=None,filename=None,authkey=None,via=None):
     logger.info("add code title=%s,lang=%s"%(title,lang))
     conn = get_conn()
     cur = conn.cursor()
@@ -41,9 +41,9 @@ def add_code(pid=0,title=None,author=None,email=None, tags=None,
         create_time = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
         uid = uuid.uuid4().hex
         cur.execute("insert into codes \
-            (id,parent,title,author,email,tags,content,authkey,lang,filename,create_time)\
-             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-             (uid,pid,title,author,email,tags,content,authkey,lang,filename,create_time))
+            (id,parent,title,author,email,tags,content,authkey,lang,filename,create_time,via)\
+             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+             (uid,pid,title,author,email,tags,content,authkey,lang,filename,create_time,via))
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)        
         conn.commit()
@@ -64,7 +64,7 @@ def list_index(keyword=None,page=1,limit=pagesize):
         offset = (page -1) * limit    
     try:
         if keyword:
-            sql = "select id,title,author,email,tags,lang,hits,filename,create_time from codes\
+            sql = "select id,title,author,email,tags,lang,hits,filename,create_time,via from codes\
              where title like '%%%s%%' order by create_time desc limit %s,%s"%(keyword,offset,limit)
         else:
             sql = "select id,title,author,email,tags,lang,hits,filename,create_time\
@@ -88,7 +88,7 @@ def list_codes_bylang(lang,page=1,limit=pagesize):
     if page >= 1:
         offset = (page -1) * limit
     try:
-        cur.execute("""SELECT id,title,author,email,tags,lang,hits,filename,create_time
+        cur.execute("""SELECT id,title,author,email,tags,lang,hits,filename,create_time,via
                         FROM codes
                         WHERE lang = %s
                         order by create_time desc limit %s,%s""",(lang,offset,limit))
@@ -110,7 +110,7 @@ def list_codes_bytags(tag,page=1,limit=pagesize):
     if page >= 1:
         offset = (page -1) * limit
     try:
-        cur.execute("""SELECT id,title,author,email,tags,lang,hits,filename,create_time
+        cur.execute("""SELECT id,title,author,email,tags,lang,hits,filename,create_time,via
                         FROM codes 
                         WHERE tags like %s
                         order by id desc limit %s,%s""",('%%%s%%'%tag,offset,limit))
@@ -129,7 +129,7 @@ def list_versions(pid,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
     try:
-        cur.execute("""select id,parent,title,author,email,tags,lang,hits,filename,create_time
+        cur.execute("""select id,parent,title,author,email,tags,lang,hits,filename,create_time,via
          from codes where parent = %s
          order by create_time desc limit 0,%s""",(pid,limit))
         if web.config.debug:
@@ -152,14 +152,14 @@ def get_content(uid):
         codeobjs = cur.fetchone()   
 
         if not codeobjs:
-            raise Exception('code not exists')         
+            return None     
 
         code_hits = codeobjs[0]
         hits = (int(code_hits) + 1)
         
         cur.execute("update codes set hits = %s where id=%s",(hits,uid))
         conn.commit()            
-        cur.execute("select id,title,author,tags,lang,content,hits,create_time\
+        cur.execute("select id,title,author,tags,lang,content,hits,create_time,via\
          from codes where id = %s",uid)
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)           

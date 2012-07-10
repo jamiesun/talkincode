@@ -17,7 +17,7 @@ config = {
 }
 
 """ define logging """
-logger = logging.getLogger("sayincode")
+logger = logging.getLogger("talkincode")
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(name)-12s %(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S',)
 file_handler = logging.FileHandler("./logs/server.log")

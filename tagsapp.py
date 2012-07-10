@@ -16,11 +16,13 @@ class routeto():
 @app.route("/")
 class index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         return render("tags.html") 
 
 @app.route("/list/(.*)")
 class index():
     def GET(self,tag):
+        web.header("Content-Type","text/html; charset=utf-8")
         langs = codestore.list_langs()   
         posts = groupstore.list_posts_by_tag(tag,limit=50)  
         codes = codestore.list_codes_bytags(tag,limit=50)

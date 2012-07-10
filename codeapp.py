@@ -16,6 +16,7 @@ class routeto():
 @app.route("/")
 class index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
         tops = codestore.list_index(page=page) 
@@ -25,6 +26,7 @@ class index():
 class add_code():
     @auth_user
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         langs = codestore.list_langs()
         return render("code_add.html",langs = langs)
 
@@ -57,6 +59,7 @@ class add_code():
 @app.route("/category/(.*)")
 class index_cat():
     def GET(self,lang):
+        web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
         tops = codestore.list_codes_bylang(lang,page=page) 
@@ -69,6 +72,7 @@ class index_cat():
 @app.route("/view/(.*)")
 class code_view():
     def GET(self,uid):
+        web.header("Content-Type","text/html; charset=utf-8")
         versions = codestore.list_versions(uid) 
         content = codestore.get_content(uid)
         posts = groupstore.list_posts_by_codeid(uid)

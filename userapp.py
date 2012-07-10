@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import route_app,filter_html,render
+from settings import route_app,render
 import userstore
 import web
 
@@ -14,11 +14,13 @@ class routeto():
 @app.route("/")
 class index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         return render("user.html") 
 
 @app.route("/settings")
 class index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         session = web.ctx.session
         user = session.get("user")
         if not user:

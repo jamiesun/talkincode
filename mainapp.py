@@ -119,6 +119,7 @@ class register():
 @app.route("/login")
 class login():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         return render("login.html") 
 
     def POST(self):
@@ -181,15 +182,15 @@ class GEventServer():
             Process(target=serve_forever, args=tuple()).start()
         serve_forever()
 
+def start_server(port=18000):
+    logger.info('starting server %s'%port)
+    GEventServer(app.wsgifunc(),"0.0.0.0",port).start()
+
 if __name__ == "__main__":
     web.config.debug = False
-
     try:
-        with open("/var/run/talkincode.pid",'wb') as pidfs:
-            pidfs.write(str(os.getpid()))     
-        GEventServer(app.wsgifunc(),"0.0.0.0",18000).start()
-    except Exception,e:
-        import traceback
-        logger.info("gevent server start fail %s"%traceback.format_exc())
+        start_server()
+    except:
         app.run()
+    
 

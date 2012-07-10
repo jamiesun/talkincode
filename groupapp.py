@@ -16,6 +16,7 @@ class routeto():
 @app.route("/")
 class index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
         groups = groupstore.list_groups()
         stats = groupstore.get_post_stats()
@@ -31,6 +32,7 @@ class index():
 @app.route("/category/(.*)")
 class index():
     def GET(self,guid):
+        web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
         groups = groupstore.list_groups()
         stats = groupstore.get_post_stats(guid)
@@ -47,6 +49,7 @@ class index():
 class add_post():
     @auth_user
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         groups = groupstore.list_groups()
         gid = web.input().get("gid")
         codeid = web.input().get("codeid")
@@ -111,12 +114,12 @@ class update_post():
 @app.route("/post/view/(.*)")
 class get_post():
     def GET(self,uid):
+        web.header("Content-Type","text/html; charset=utf-8")
         try:
             page = int(web.input().get("page",1)) 
             groups = groupstore.list_groups()
             post = groupstore.get_content(uid)
             codeid = post.get("codeid")
-            print codeid
             code = None
             if codeid:
                 code = codestore.get_content(codeid)

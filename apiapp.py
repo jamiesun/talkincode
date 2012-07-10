@@ -72,7 +72,8 @@ class code_add():
                       content = forms.get("content"),
                       authkey = forms.get("authkey"),
                       filename = forms.get("filename"),
-                      lang=forms.get("lang"))
+                      lang=forms.get("lang"),
+                      via=forms.get("via"))
         try:
             codestore.add_code(**params)
             return jsonResult(result="code publish success")
@@ -123,12 +124,13 @@ class add_post():
         tags = form.get("tags")
         gid = form.get("gid",0)
         content = form.get("content")
+        via = form.get("via")
         if not title or not content:
             return jsonResult(error="title,content can not empty")
         try:
             if tags :tags = tags[:255]
             title = title[:255]
-            groupstore.add_post(gid,userid,title,tags,content,codeid)
+            groupstore.add_post(gid,userid,title,tags,content,codeid,via)
             return jsonResult(result="post success")
         except Exception, e:
             return jsonResult(error="post fail %s"%e)
@@ -144,14 +146,16 @@ class add_comment():
             userid = user.get("id")
             content = form.get("content")
             postid = form.get("postid")
+            via=form.get("via")
             author =  user["username"]
             email = user['email']
             url = user['url']
             ip = web.ctx.ip
             agent =  web.ctx.env.get('HTTP_USER_AGENT')
+            status = 1
             if not content:
                 return jsonResult(error="content can not empty")
-            groupstore.add_comment(postid,content,userid,author,email,url,ip,agent,status=1)
+            groupstore.add_comment(postid,content,userid,author,email,url,ip,agent,status,via)
             return jsonResult(result="post comment success")
         except Exception, e:
             return jsonResult(error="add comment error %s"%e)    

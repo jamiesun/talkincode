@@ -8,7 +8,7 @@
 # execfile(activate_this, dict(__file__=activate_this))
 import sys
 import os
-pid = "/var/run/talkincode.pid"
+
 python_exec = '/usr/bin/python2.7'
 app_dir = "/talkincode"
 app_script = "mainapp.py"
@@ -16,8 +16,8 @@ def start():
 	os.system("cd %s && exec nohup %s %s &"%(app_dir,python_exec,app_script))
 
 def stop():
-	os.system("kill %s"%open(pid,'rb').read().strip())
-	os.remove(pid)
+    pass
+
 
 def restart():
 	stop()

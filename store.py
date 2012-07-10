@@ -55,7 +55,12 @@ def register(username,password,email):
         cur.execute("select count(*) from users where username=%s",username)
         user_exists = cur.fetchone()[0]
         if user_exists:
-            raise Exception("user already exists")
+            raise Exception("username already exists")
+
+        cur.execute("select count(*) from users where email=%s",email)
+        user_exists = cur.fetchone()[0]
+        if user_exists:
+            raise Exception("email already exists")            
 
         authkey = uuid.uuid4().hex
         create_time = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
@@ -89,7 +94,7 @@ def login(username,password):
         conn.commit()
         return dict(id=user[0],username=user[1],email=user[2],url=user[3],authkey=user[4],lastlogin=user[5])
     except Exception,e:
-        logger.error("register error,%s"%e)
+        logger.error("login error,%s"%e)
         raise e
     finally:
         cur.close()
