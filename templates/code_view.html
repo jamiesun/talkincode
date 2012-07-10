@@ -20,13 +20,14 @@ $(document).ready(function(){
       <h2>${content["title"]}</h2>
     </div>      
     <p>
-        <a>@${content['author']}</a>&nbsp;&nbsp;
+        发布者：<a>${content['author']}</a>&nbsp;&nbsp;
         编程语言: ${content['lang']}&nbsp;&nbsp;
         浏览次数: ${content['hits']}&nbsp;&nbsp;
+        标签：
       % for tag in content["tags"].split(","):
           <a href="/tags/list/${tag}#codetab">${tag}</a>&nbsp;
        % endfor 
-       <a class="btn" href="/group/post/add?codeid=${content["id"]}">发起讨论</a> 
+       <a class="btn btn-mini" href="/group/post/add?codeid=${content["id"]}">发起讨论</a> 
     </p>
     <!-- //start codes -->
     <pre class="prettyprint linenums Lang-${content["lang"]}">

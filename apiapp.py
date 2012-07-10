@@ -7,7 +7,9 @@ import store
 import json
 import web
 import traceback
-
+"""
+@description:talkincode.org  api
+"""
 app  = route_app()
 
 def jsonResult(**kwargs):
@@ -98,6 +100,16 @@ class code_get():
         except:
             return jsonResult(error="query data error")  
 
+@app.route("/groups")
+class groups():
+    def GET(self):
+        try:
+            grps = groupstore.list_groups()
+            return json.dumps(grps)
+        except:
+            return jsonResult(error="query data error")         
+
+
 @app.route("/post/add")
 class add_post():
     @doauthkey
@@ -117,7 +129,7 @@ class add_post():
             if tags :tags = tags[:255]
             title = title[:255]
             groupstore.add_post(gid,userid,title,tags,content,codeid)
-            raise jsonResult(result="post success")
+            return jsonResult(result="post success")
         except Exception, e:
             return jsonResult(error="post fail %s"%e)
 
@@ -132,11 +144,14 @@ class add_comment():
             userid = user.get("id")
             content = form.get("content")
             postid = form.get("postid")
+            author =  user["username"]
+            email = user['email']
+            url = user['url']
             ip = web.ctx.ip
             agent =  web.ctx.env.get('HTTP_USER_AGENT')
             if not content:
                 return jsonResult(error="content can not empty")
-            groupstore.add_comment(postid,content,userid=userid,ip=ip,agent=agent,status=1)
+            groupstore.add_comment(postid,content,userid,author,email,url,ip,agent,status=1)
             return jsonResult(result="post comment success")
         except Exception, e:
             return jsonResult(error="add comment error %s"%e)    
@@ -145,9 +160,11 @@ class add_comment():
 @app.route("/post/index")
 class post_index():
     def GET(self):
-        gid = web.input().get("gid")
+        keyword = web.input().get("q") 
+        limit = int(web.input().get("limit",100))   
+        if limit > 1000:limit = 1000     
         try:
-            tops = groupstore.list_posts(gid=gid,limit=100) 
+            tops = groupstore.search_posts(keyword,limit=limit) 
             return json.dumps(tops)
         except Exception,e:
             return jsonResult(error="query post fail %s"%e)

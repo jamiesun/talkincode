@@ -215,6 +215,35 @@ def list_posts(gid=None,page=1,limit=pagesize):
         cur.close()
         conn.close()
 
+def search_posts(keyword=None,page=1,limit=pagesize):
+    conn = get_conn()
+    cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit    
+    try:
+        if not keyword:
+            return None
+        cur.execute("""
+            SELECT p.id,groupid,codeid,userid,u.username,title,tags,description,
+            content,p.status,hits,p.created,modified
+            FROM posts p,users u
+            WHERE title like %s
+            and p.userid = u.id
+            order by hits desc
+            LIMIT %s,%s            
+            """,('%%%s%%'%keyword,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)               
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except Exception,e:
+        logger.error('list_posts error %s'%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()        
+
 @cache.cache('group_get_content_func', expire=3600)
 def get_content(uid):
     conn = get_conn()
@@ -370,7 +399,7 @@ def list_comments(pid,page=1,limit=pagesize):
         cur.execute("""
             SELECT id,postid,author,content,userid,url,created
             FROM comments
-            WHERE postid = %s order by created desc
+            WHERE postid = %s order by created asc
             LIMIT %s,%s            
             """,(pid,offset,limit))
         if web.config.debug:

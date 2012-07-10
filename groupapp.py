@@ -79,11 +79,11 @@ class add_comment():
             user = web.ctx.session.get("user")
             userid = user and user["id"] or None  
             form = web.input()
-            author = form.get("author")
+            author = user and user["username"] or form.get("author")
             content = form.get("content")
             postid = form.get("postid")
-            email = form.get("email")
-            url = form.get("url")
+            email = user and user["email"] or form.get("email")
+            url =  user and user["url"] or form.get("url")
             ip = web.ctx.ip
             agent =  web.ctx.env.get('HTTP_USER_AGENT')
             status = userid and 1 or 0

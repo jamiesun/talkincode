@@ -54,6 +54,7 @@ app.add_processor(web.loadhook(context_hook))
 @app.route("/index")
 class home():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         raise web.seeother("/",absolute=True)
             
 
@@ -75,6 +76,7 @@ class img():
 @app.route("/")
 class index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         tops = codestore.list_index(limit=5) 
         langs = codestore.list_langs()
         stats = groupstore.get_post_stats()
@@ -90,6 +92,7 @@ class index():
 @app.route("/join")
 class register():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         return render("join.html") 
 
     def POST(self):
@@ -149,8 +152,11 @@ class code_search():
 class GEventServer():
     """ gevent wsgi服务器定义，可利用多进程
     """
-    def __init__(self,handler):
+    def __init__(self,handler,host,port):
         self.handler = handler
+        self.host = host
+        self.port = port
+
 
     def start(self):
         from multiprocessing import Process
@@ -176,12 +182,14 @@ class GEventServer():
         serve_forever()
 
 if __name__ == "__main__":
-    web.config.debug = True
+    web.config.debug = False
 
     try:
         with open("/var/run/talkincode.pid",'wb') as pidfs:
             pidfs.write(str(os.getpid()))     
-        GEventServer(app.wsgifunc()).start()
-    except:
+        GEventServer(app.wsgifunc(),"0.0.0.0",18000).start()
+    except Exception,e:
+        import traceback
+        logger.info("gevent server start fail %s"%traceback.format_exc())
         app.run()
 

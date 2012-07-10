@@ -102,6 +102,7 @@ def initdata():
     grps = {"python":"python编程",
             "php":"php编程",
             "html":"html&css",
+            "func":"函数式编程",
             "st2":"sublime text 2小站",
             "vim":"vim小站",
             "emacs":"emacs小站"}
@@ -144,13 +145,13 @@ def initdata():
 
 
 if __name__ == "__main__":
-    # initdata()
-    #register("test2","123456","test@com")
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("select count(*) from posts where id=%s","1")
-    print (cur._executed)
-    cur.close()
-    conn.close()
+    initdata()
+    # #register("test2","123456","test@com")
+    # conn = get_conn()
+    # cur = conn.cursor()
+    # cur.execute("select count(*) from posts where id=%s","1")
+    # print (cur._executed)
+    # cur.close()
+    # conn.close()
 
 

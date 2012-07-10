@@ -1,18 +1,12 @@
 <%inherit file="base.html"/>
 
 <%def name="head()"> 
-<link href="/js/prettify/prettify_blank.css" rel="stylesheet" />
-<script src="/js/prettify/prettify.js"></script>
-<script>
-$(document).ready(function(){
-     prettyPrint();
-})
-</script>
+
 </%def> 
 
 
 <%def name="body()">
-<darkolivegreen  class="container-fluid">
+<div  class="container-fluid">
 <div class="row-fluid">
 <div class="span8">
   <div class="row-fluid">
@@ -24,7 +18,7 @@ $(document).ready(function(){
       % for lang in langs[:8]:
       <th><a href="/code/category/${lang["name"]}">${lang["name"]}</a></th>
       % endfor
-      <th><a class="btn btn-small" href="/code/add">分享我的代码</a> </th>
+      <th><a class="btn btn-mini" href="/code/add">分享我的代码</a> </th>
       </tr>
    </thead>       
   </table>
@@ -44,7 +38,7 @@ $(document).ready(function(){
           <td><span class="badge">${topit['hits']}</span></td>
           <td><span class="label label-info">${topit['lang']}</span></td>
           <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
-          <td><a href="#">@${topit['author']}</a></td>
+          <td><a href="#">${topit['author']}</a></td>
           <td>${topit['create_time']}</td>
         </tr>
       % endfor
@@ -114,8 +108,8 @@ $(document).ready(function(){
     </div><!--/.well -->
   </div><!--/span-->
   </div><!--/row-->
-</darkolivegreen  >
-
+</div>
+</div>
 </%def> 
 
 
