@@ -42,7 +42,7 @@
           % if comment.get("userid"):
           <span><a href="#">@${ctx.get_user(comment.get("userid"))["username"]}</a> </span>&nbsp;&nbsp;
           % else:
-            <span><a href="${comment.get('url')}">${comment.get("author")}</a> </span>&nbsp;&nbsp;
+            <span><a href="${comment.get('url')}" rel="nofollow">${comment.get("author")}</a> </span>&nbsp;&nbsp;
           % endif
           <span class="active">${comment['created']} </span> &nbsp;&nbsp;       
            % if comment.get("via"):
