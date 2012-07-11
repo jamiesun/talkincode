@@ -86,14 +86,12 @@
       <thead>
         <tr>
           <th>活跃小组</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
        % for group in groups:
         <tr>
           <td><a href="/group/category/${group.get("guid")}">${group["name"]}</a></td>
-          <td><span class="badge badge">${group["posts"]}</span></td>
         </tr>
         % endfor
       </tbody>
