@@ -20,7 +20,7 @@
     <p >
      <a href="#">@${ctx.get_user(post['userid'])["username"]}</a> &nbsp;&nbsp;标签：
       % for tag in post["tags"].split(","):
-          <a href="#">${tag}</a>&nbsp;
+          <a href="/tags/list/${tag}">${tag}</a>&nbsp;
        % endfor 
      </p>
     ${ctx.md.convert(post["content"])}
@@ -44,7 +44,10 @@
           % else:
             <span><a href="${comment.get('url')}">${comment.get("author")}</a> </span>&nbsp;&nbsp;
           % endif
-          <span class="active">${comment['created']} </span> &nbsp;&nbsp;        
+          <span class="active">${comment['created']} </span> &nbsp;&nbsp;       
+           % if comment.get("via"):
+           <span class="active">via: ${comment['via']} </span> &nbsp;&nbsp;    
+           % endif
         </div>             
         </td>
       </tr>

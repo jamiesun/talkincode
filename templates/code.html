@@ -51,14 +51,12 @@
       <thead>
         <tr>
           <th>编程语言</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
        % for lang in langs:
         <tr>
           <td><a href="/code/category/${lang["name"]}">${lang["name"]}</a></td>
-          <td><span class="badge badge">${lang["hits"]}</span></td>
         </tr>
         % endfor
       </tbody>
