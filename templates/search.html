@@ -1,0 +1,116 @@
+<%inherit file="base.html"/>
+
+<%def name="head()"> 
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33313432-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</%def> 
+
+
+<%def name="body()">
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span8">
+    <div class="row-fluid">
+
+    <div class="tabbable"> <!-- Only required for left/right tabs -->
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#posttab" data-toggle="tab">讨论主题</a></li>
+        <li><a href="#codetab" data-toggle="tab">代码库</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="posttab">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>    
+            <!-- //codes list -->   
+            % for topit in posts:
+            <tr>
+              <td >
+                <span ><span class="badge">${topit['hits']}</span> 
+              </td>
+              <td>
+                <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
+                <p >${ctx.md.convert(topit["content"][:255])}......</p>
+                <div >
+                  <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
+                  <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
+                   % for tag in topit["tags"].split(","):
+                    <span ><a href="/tags/list/${tag}">${tag}</a></span>
+                   % endfor          
+                </div>             
+                </td>
+                </tr>
+            % endfor
+            </tbody>
+           </table>
+        </div>
+        <div class="tab-pane" id="codetab">
+          <table class="table">
+           <thead>
+              <tr>
+                <th>热度</th>
+                <th>语言</th>
+                <th>标题</th>
+                <th>分享者</th>
+                <th>时间</th>
+              </tr>
+            </thead>    
+            <tbody>
+            % for topit in codes:
+              <tr>
+                <td><span class="badge">${topit['hits']}</span></td>
+                <td><span class="label label-info">${topit['lang']}</span></td>
+                <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
+                <td><a href="#">@${topit['author']}</a></td>
+                <td>${topit['create_time']}</td>
+              </tr>
+            % endfor
+            </tbody>
+          </table>        
+        </div>
+      </div>
+    </div>    
+ 
+    </div>
+  </div>
+
+  <div class="span3">
+    <div class="well sidebar-nav">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>热门标签</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+       % for tag in tags:
+        <tr>
+          <td><a href="/tags/list/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
+        </tr>
+        % endfor
+      </tbody>
+    </table>
+    </div><!--/.well -->
+  </div><!--/span-->
+  </div><!--/row-->
+</div>
+</%def> 
+
+
