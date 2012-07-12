@@ -9,6 +9,7 @@
 
     <!-- Le styles -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/base.css" rel="stylesheet">
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -39,7 +40,7 @@
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
 
-    </script>     
+    </script>        
   </head>
 
   <body>
@@ -80,16 +81,15 @@
       </div>
     </div>
       <!-- Main hero unit for a primary marketing message or call to action -->
-    ${self.body()}
+     <div  class="container">
+      ${self.body()}
+     </div>
 
-    <div class="container">
-      <footer>
+      <footer id="footer">
+        <div class="container ">
+        <p class="pull-right"><a href="#">Back to top</a></p>
         <p>&copy; 2012 talkincode All rights reserved</p>
-      </footer>
-    </div> <!-- /container -->
-
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
+      </div>
+      </footer>     
   </body>
 </html>
