@@ -47,12 +47,10 @@
                 <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
                 <p >${ctx.md.convert(topit["content"][:255])}......</p>
                 <div >
-                  <span><a href="/group/category/${ctx.get_group(topit['groupid'])["guid"]}">
-                  ${ctx.get_group(topit['groupid'])["name"]}</a> </span>&nbsp;&nbsp;
                   <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
                   <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
                    % for tag in topit["tags"].split(","):
-                    <span ><a href="/tag/list/${tag}">${tag}</a></span>
+                    <span ><a href="/tags/list/${tag}">${tag}</a></span>
                    % endfor          
                 </div>             
                 </td>

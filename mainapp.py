@@ -47,7 +47,6 @@ def context_hook():
     web.ctx.db = get_conn
     web.ctx.md = made
     web.ctx.get_user=groupstore.get_user
-    web.ctx.get_group=groupstore.get_group
 app.add_processor(web.loadhook(context_hook))   
 
 
@@ -79,15 +78,17 @@ class index():
         web.header("Content-Type","text/html; charset=utf-8")
         tops = codestore.list_index(limit=5) 
         langs = codestore.list_langs()
-        stats = groupstore.get_post_stats()
+        stats = groupstore.get_post_stats(False)
         posts = groupstore.list_posts(limit=20)
-        tagset = tagstore.get_tags()
+        codetags = tagstore.get_code_tags()
+        posttags =  tagstore.get_post_tags()
         return render("index.html",
             tops = tops,
             posts=posts,
             langs=langs,
             stats=stats,
-            tagset=tagset) 
+            codetags=codetags,
+            posttags=posttags) 
 
 @app.route("/join")
 class register():
@@ -187,10 +188,13 @@ def start_server(port=18000):
     GEventServer(app.wsgifunc(),"0.0.0.0",port).start()
 
 if __name__ == "__main__":
-    web.config.debug = False
-    try:
-        start_server()
-    except:
+    
+    import  platform
+    if  platform.system() == "Windows":
+        web.config.debug = False
         app.run()
+    else:
+        start_server()
+
     
 

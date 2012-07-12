@@ -81,6 +81,28 @@ def list_index(keyword=None,page=1,limit=pagesize):
         cur.close()
         conn.close()
 
+def list_codes_byauthkey(authkey,page=1,limit=pagesize):
+    conn = get_conn()
+    cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit
+    try:
+        cur.execute("""SELECT id,title,author,email,tags,lang,authkey,hits,filename,create_time,via
+                        FROM codes
+                        WHERE authkey = %s
+                        order by create_time desc limit %s,%s""",(authkey,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except Exception,e:
+        logger.error('list_codes_byauthkey error %s'%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()           
+
 def list_codes_bylang(lang,page=1,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()

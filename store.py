@@ -136,7 +136,7 @@ def initdata():
             count += 1 
             cur.execute("insert into langs (id,name,ext,hits) values(%s,%s,%s,%s)",(count,k,l,0))
         cur.execute("delete from groups")
-        count = 1
+        count = 0
         for k,g in grps.items():
             count += 1 
             cur.execute("insert into groups (id,name,guid,posts) values(%s,%s,%s,%s)",(count,g,k,0))     

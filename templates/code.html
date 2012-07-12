@@ -51,6 +51,24 @@
     <table class="table table-striped">
       <thead>
         <tr>
+          <th>活跃标签</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+       % for tag in tags:
+        <tr>
+          <td><a href="/code/tag/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
+        </tr>
+        % endfor
+      </tbody>
+    </table>
+    </div><!--/.well -->    
+    <div class="well sidebar-nav">
+    <table class="table table-striped">
+      <thead>
+        <tr>
           <th>编程语言</th>
         </tr>
       </thead>
@@ -62,7 +80,7 @@
         % endfor
       </tbody>
     </table>
-    </div><!--/.well -->
+    </div><!--/.well -->    
   </div><!--/span-->
   </div><!--/row-->
 </div>

@@ -85,13 +85,14 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>活跃小组</th>
+          <th>活跃话题</th>
         </tr>
       </thead>
       <tbody>
-       % for group in groups:
+       % for tag in tags:
         <tr>
-          <td><a href="/group/category/${group.get("guid")}">${group["name"]}</a></td>
+          <td><a href="/group/tag/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
         </tr>
         % endfor
       </tbody>

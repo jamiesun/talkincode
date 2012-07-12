@@ -2,6 +2,7 @@
 #coding:utf-8
 from settings import route_app,filter_html,render,logger
 from settings import errorpage,auth_user
+import tagstore
 import groupstore
 import codestore
 import web
@@ -18,42 +19,37 @@ class index():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        groups = groupstore.list_groups()
-        stats = groupstore.get_post_stats()
+        stats = groupstore.get_post_stats(False)
         tops = groupstore.list_posts(page=page)
+        tags = tagstore.get_post_tags()
         return render("group.html",
             tops = tops,
-            groups=groups,
             stats=stats,
-            page=page,
-            get_user=groupstore.get_user,
-            get_group=groupstore.get_group) 
+            tags=tags,
+            page=page) 
 
-@app.route("/category/(.*)")
+@app.route("/tag/(.*)")
 class index():
-    def GET(self,guid):
+    def GET(self,tag):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        groups = groupstore.list_groups()
-        stats = groupstore.get_post_stats(guid)
-        tops = groupstore.list_posts_by_guid(guid,page=page)
+        tags = tagstore.get_post_tags()
+        stats = groupstore.get_post_stats(tag)
+        tops = groupstore.list_posts_by_tag(tag,page=page)
         return render("group.html",
+            ctag=tag,
             tops = tops,
-            groups=groups,
             stats=stats,
-            page=page,
-            get_user=groupstore.get_user,
-            get_group=groupstore.get_group) 
+            tags=tags,
+            page=page) 
 
 @app.route("/post/add")
 class add_post():
     @auth_user
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
-        groups = groupstore.list_groups()
-        gid = web.input().get("gid")
         codeid = web.input().get("codeid")
-        return render("post_add.html",groups=groups,gid=gid,codeid=codeid) 
+        return render("post_add.html",codeid=codeid) 
 
     @auth_user
     def POST(self):
@@ -62,15 +58,14 @@ class add_post():
         codeid = form.get("codeid")
         title = form.get("title")
         tags = form.get("tags")
-        gid = form.get("gid")
         content = form.get("content")
         userid = user["id"]
-        if not title or not gid or not content:
+        if not title  or not content:
             return errorpage(u"请输入完整数据")
         try:
             if tags :tags = tags[:255]
             title = title[:255]
-            groupstore.add_post(gid,userid,title,tags,content,codeid)
+            groupstore.add_post(userid,title,tags,content,codeid)
             raise web.seeother("/group/",absolute=True)
         except Exception, e:
             return errorpage("add post error %s"%e)
@@ -117,15 +112,15 @@ class get_post():
         web.header("Content-Type","text/html; charset=utf-8")
         try:
             page = int(web.input().get("page",1)) 
-            groups = groupstore.list_groups()
             post = groupstore.get_content(uid)
+            tags = tagstore.get_post_tags()
             codeid = post.get("codeid")
             code = None
             if codeid:
                 code = codestore.get_content(codeid)
             comments = groupstore.list_comments(uid,page=page)
             return render("post_view.html",
-                groups=groups,
+                tags=tags,
                 post=post,
                 comments=comments,
                 page=page,

@@ -4,7 +4,6 @@
 
 </%def> 
 
-
 <%def name="body()">
 <div class="container-fluid">
 <div class="row-fluid">
@@ -13,7 +12,10 @@
        <ul class="breadcrumb">
       <li>
         <a href="#">talkincode讨论区</a>: 
-      </li>
+      </li><span class="divider">/</span>
+      % if ctag:
+      <li class="active">${ctag}</li><span class="divider">/</span>
+      % endif
       <li class="active">主题数:${stats.get("total")}</li><span class="divider">/</span>
       <li class="active">浏览次数:${stats.get("hits_total") or 0}</li>
     </ul>  
@@ -35,12 +37,10 @@
         <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
         <p >${ctx.md.convert(topit["content"][:255])}......</p>
         <div >
-          <span><a href="/group/category/${get_group(topit['groupid'])["guid"]}">
-          ${ctx.get_group(topit['groupid'])["name"]}</a> </span>&nbsp;&nbsp;
           <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
           <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
            % for tag in topit["tags"].split(","):
-            <span ><a href="/tag/list/${tag}">${tag}</a></span>
+            <span ><a href="/group/tag/${tag}">${tag}</a></span>
            % endfor          
         </div>             
         </td>
@@ -65,15 +65,15 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>活跃小组</th>
+          <th>活跃话题</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-       % for group in groups:
+       % for tag in tags:
         <tr>
-          <td><a href="/group/category/${group.get("guid")}">${group["name"]}</a></td>
-          <!--<td><span class="badge badge">${group["posts"]}</span></td>-->
+          <td><a href="/group/tag/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
         </tr>
         % endfor
       </tbody>

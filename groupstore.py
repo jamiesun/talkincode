@@ -5,25 +5,7 @@ from store import get_conn,todict
 import uuid
 import datetime
 import web
-
-@cache.cache('get_group_func', expire=3600)
-def get_group(gid):
-    conn = get_conn()
-    cur = conn.cursor()
-    try:      
-        cur.execute(" select id,name,description,guid,posts from groups  WHERE id = %s",gid)
-        if web.config.debug:
-            logger.info("execute sql: %s "%cur._executed)        
-        ones =  cur.fetchone()
-        if ones :
-            return todict(ones,cur.description)
-        else:
-            return {"id":0,"name":u"综合讨论","guid":"all","posts":0}
-    except:
-        raise
-    finally:
-        cur.close()
-        conn.close()    
+   
 
 @cache.cache('get_user_func', expire=3600)
 def get_user(uid):
@@ -63,19 +45,22 @@ def get_user_byauthkey(authkey):
         cur.close()
         conn.close()   
 
-#@cache.cache('get_post_total_func', expire=3600)
-def get_post_stats(guid=None):
+@cache.cache('get_post_stats_func', expire=3600)
+def get_post_stats(tag):
     conn = get_conn()
     cur = conn.cursor()
-    try:      
-        if guid:
+    try:
+        if tag:      
             cur.execute("""
                 SELECT COUNT(*) AS total, SUM(hits) AS hits_total
-                FROM posts p,groups g
-                WHERE p.groupid = g.id AND g.guid = %s
-                """,guid)
+                FROM posts 
+                where tags like %s
+                """,'%%%s%%'%tag)
         else:
-            cur.execute(" select count(*) as total, sum(hits) as hits_total from posts ")
+            cur.execute("""
+                SELECT COUNT(*) AS total, SUM(hits) AS hits_total
+                FROM posts 
+                """)            
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)            
         ones =  cur.fetchone()
@@ -88,49 +73,7 @@ def get_post_stats(guid=None):
     finally:
         cur.close()
         conn.close()            
-
-@cache.cache('list_groups_func', expire=3600)
-def list_groups():
-    conn = get_conn()
-    cur = conn.cursor()
-    try:
-        cur.execute("select id,name,description,guid,posts from groups order by posts desc")
-        if web.config.debug:
-            logger.info("execute sql: %s "%cur._executed)        
-        result = cur.fetchall()
-        return [todict(rt,cur.description) for rt in result]
-    except Exception,e:
-        logger.error('list_groups error %s'%e)
-        raise
-    finally:
-        cur.close()
-        conn.close()
-
-#@cache.cache('list_posts_by_guid_func', expire=3600)
-def list_posts_by_guid(guid,page=1,limit=pagesize):
-    conn = get_conn()
-    cur = conn.cursor()
-    offset = 0
-    if page >= 1:
-        offset = (page -1) * limit     
-    try:      
-        cur.execute("""
-            SELECT p.id,p.groupid,p.userid,p.title,p.tags,p.description,
-             p.content, p.STATUS,p.hits,p.created,p.modified,p.via
-            FROM posts p,groups g
-            WHERE p.groupid = g.id AND g.guid = %s
-            ORDER BY modified DESC
-            LIMIT %s,%s        
-            """,(guid,offset,limit))
-        if web.config.debug:
-            logger.info("execute sql: %s "%cur._executed)        
-        result = cur.fetchall()
-        return [todict(rt,cur.description) for rt in result]
-    except:
-        raise
-    finally:
-        cur.close()
-        conn.close()            
+      
 
 def list_posts_by_tag(tag,page=1,limit=pagesize):
     conn = get_conn()
@@ -140,7 +83,7 @@ def list_posts_by_tag(tag,page=1,limit=pagesize):
         offset = (page -1) * limit     
     try:      
         cur.execute("""
-            SELECT p.id,p.groupid,p.userid,p.title,p.tags,p.description,
+            SELECT p.id,p.userid,p.title,p.tags,p.description,
              p.content, p.STATUS,p.hits,p.created,p.modified,p.via
             FROM posts p
             WHERE p.tags like %s
@@ -155,7 +98,33 @@ def list_posts_by_tag(tag,page=1,limit=pagesize):
         raise
     finally:
         cur.close()
-        conn.close()     
+        conn.close()    
+
+def list_posts_by_user(userid,page=1,limit=pagesize):
+    conn = get_conn()
+    cur = conn.cursor()
+    offset = 0
+    if page >= 1:
+        offset = (page -1) * limit     
+    try:      
+        cur.execute("""
+            SELECT p.id,p.userid,u.username,p.title,p.tags,p.description,
+             p.content, p.STATUS,p.hits,p.created,p.modified,p.via
+            FROM posts p,users u
+            WHERE p.userid = %s
+            and p.userid = u.id
+            ORDER BY modified DESC
+            LIMIT %s,%s        
+            """,(userid,offset,limit))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
+        result = cur.fetchall()
+        return [todict(rt,cur.description) for rt in result]
+    except:
+        raise
+    finally:
+        cur.close()
+        conn.close()            
 
 def list_posts_by_codeid(cid,page=1,limit=pagesize):
     conn = get_conn()
@@ -165,7 +134,7 @@ def list_posts_by_codeid(cid,page=1,limit=pagesize):
         offset = (page -1) * limit     
     try:      
         cur.execute("""
-            SELECT id,groupid,userid,codeid,title,tags,description,
+            SELECT id,userid,codeid,title,tags,description,
              content, STATUS,hits,created,modified,via
             FROM posts p
             WHERE p.codeid = %s
@@ -182,28 +151,19 @@ def list_posts_by_codeid(cid,page=1,limit=pagesize):
         cur.close()
         conn.close()                  
 
-def list_posts(gid=None,page=1,limit=pagesize):
+def list_posts(page=1,limit=pagesize):
     conn = get_conn()
     cur = conn.cursor()
     offset = 0
     if page >= 1:
         offset = (page -1) * limit    
     try:
-        if gid:
-            cur.execute("""
-                SELECT id,groupid,codeid,userid,title,tags,description,
-                content,status,hits,created,modified,via
-                FROM posts  
-                WHERE groupid = %s order by modified desc
-                LIMIT %s,%s            
-                """,(gid,offset,limit))
-        else:
-             cur.execute("""
-                SELECT id,groupid,codeid,userid,title,tags,description,
-                content,status,hits,created,modified,via
-                FROM posts order by modified desc
-                LIMIT %s,%s            
-                """,(offset,limit))
+        cur.execute("""
+            SELECT id,codeid,userid,title,tags,description,
+            content,status,hits,created,modified,via
+            FROM posts order by modified desc
+            LIMIT %s,%s            
+            """,(offset,limit))
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)               
         result = cur.fetchall()
@@ -225,7 +185,7 @@ def search_posts(keyword=None,page=1,limit=pagesize):
         if not keyword:
             return None
         cur.execute("""
-            SELECT p.id,groupid,codeid,userid,u.username,title,tags,description,
+            SELECT p.id,codeid,userid,u.username,title,tags,description,
             content,p.status,hits,p.created,modified,via
             FROM posts p,users u
             WHERE title like %s
@@ -261,7 +221,7 @@ def get_content(uid):
         cur.execute("update posts set hits = %s where id=%s",(hits,uid))
         conn.commit()            
         cur.execute("""
-            SELECT p.id,groupid,codeid,userid,u.username,title,tags,description,
+            SELECT p.id,codeid,userid,u.username,title,tags,description,
             content,p.status,hits,p.created,modified,via
             FROM posts p,users u  
             WHERE p.userid = u.id and p.id = %s    
@@ -280,7 +240,7 @@ def get_content(uid):
         cur.close()
         conn.close()
 
-def add_post(gid,userid,title=None,tags=None,content=None,codeid=None,via=None):
+def add_post(userid,title=None,tags=None,content=None,codeid=None,via=None):
     logger.info("add post title=%s"%(title))
     conn = get_conn()
     cur = conn.cursor()
@@ -293,9 +253,9 @@ def add_post(gid,userid,title=None,tags=None,content=None,codeid=None,via=None):
         create_time = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
         uid = uuid.uuid4().hex
         cur.execute("""insert into posts \
-            (id,groupid,codeid,title,userid,tags,content,created,modified,via)
-             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-             (uid,gid,codeid,title,userid,tags,content,create_time,create_time,via))
+            (id,codeid,title,userid,tags,content,created,modified,via)
+             values(%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+             (uid,codeid,title,userid,tags,content,create_time,create_time,via))
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)        
         conn.commit()

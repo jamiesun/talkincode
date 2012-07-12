@@ -68,7 +68,7 @@ class code_add():
                       title = forms.get("title"),
                       author = forms.get("author"),
                       email = forms.get("email"),
-                      tags = forms.get("tagstr"),
+                      tags = forms.get("tags"),
                       content = forms.get("content"),
                       authkey = forms.get("authkey"),
                       filename = forms.get("filename"),
@@ -85,12 +85,27 @@ class code_index():
     def GET(self):
         keyword = web.input().get("q") 
         limit = int(web.input().get("limit",1000))
+        if limit > 1000:limit = 1000  
         try:
             tops = codestore.list_index(keyword=keyword,limit=limit) 
             return json.dumps(tops)
         except Exception,e:
             logger.error("query data error %s"%e)
             return jsonResult(error="query data error ")         
+
+@app.route("/code/my")
+class code_index_my():
+    @doauthkey
+    def GET(self):
+        authkey = web.input().get("authkey") 
+        limit = int(web.input().get("limit",1000))
+        if limit > 1000:limit = 1000  
+        try:
+            tops = codestore.list_codes_byauthkey(authkey,limit=limit) 
+            return json.dumps(tops)
+        except Exception,e:
+            logger.error("query data error %s"%e)
+            return jsonResult(error="query data error ")                 
 
 @app.route("/code/get/(.*)")
 class code_get():
@@ -100,16 +115,7 @@ class code_get():
             return json.dumps(content)
         except:
             return jsonResult(error="query data error")  
-
-@app.route("/groups")
-class groups():
-    def GET(self):
-        try:
-            grps = groupstore.list_groups()
-            return json.dumps(grps)
-        except:
-            return jsonResult(error="query data error")         
-
+  
 
 @app.route("/post/add")
 class add_post():
@@ -122,7 +128,6 @@ class add_post():
         codeid = form.get("codeid")
         title = form.get("title")
         tags = form.get("tags")
-        gid = form.get("gid",0)
         content = form.get("content")
         via = form.get("via")
         if not title or not content:
@@ -130,7 +135,7 @@ class add_post():
         try:
             if tags :tags = tags[:255]
             title = title[:255]
-            groupstore.add_post(gid,userid,title,tags,content,codeid,via)
+            groupstore.add_post(userid,title,tags,content,codeid,via)
             return jsonResult(result="post success")
         except Exception, e:
             return jsonResult(error="post fail %s"%e)
@@ -172,6 +177,20 @@ class post_index():
             return json.dumps(tops)
         except Exception,e:
             return jsonResult(error="query post fail %s"%e)
+
+@app.route("/post/my")
+class post_index():
+    def GET(self):
+        authkey = web.input().get("authkey") 
+        user = groupstore.get_user_byauthkey(authkey)
+        userid = user.get("id")
+        limit = int(web.input().get("limit",100))   
+        if limit > 1000:limit = 1000     
+        try:
+            tops = groupstore.list_posts_by_user(userid,limit=limit) 
+            return json.dumps(tops)
+        except Exception,e:
+            return jsonResult(error="query post fail %s"%e)            
 
 @app.route("/post/get/(.*)")
 class get_post():

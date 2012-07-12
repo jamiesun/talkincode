@@ -4,6 +4,7 @@ from settings import route_app,filter_html,render,auth_user
 from settings import errorpage
 import codestore
 import groupstore
+import tagstore
 import web
 
 app  = route_app()
@@ -19,8 +20,9 @@ class index():
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
+        tags = tagstore.get_code_tags()
         tops = codestore.list_index(page=page) 
-        return render("code.html",tops = tops,langs=langs,page=page) 
+        return render("code.html",tops = tops,langs=langs,tags=tags,page=page) 
 
 @app.route("/add")
 class add_code():
@@ -62,11 +64,28 @@ class index_cat():
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
+        tags = tagstore.get_code_tags()
         tops = codestore.list_codes_bylang(lang,page=page) 
         return render("code.html",
             tops = tops,
+            tags=tags,
             page=page,
-            langs=langs)         
+            langs=langs)    
+
+
+@app.route("/tag/(.*)")
+class index_cat():
+    def GET(self,tag):
+        web.header("Content-Type","text/html; charset=utf-8")
+        page = int(web.input().get("page",1)) 
+        tags = tagstore.get_code_tags()
+        langs = codestore.list_langs()
+        tops = codestore.list_codes_bytags(tag,page=page) 
+        return render("code.html",
+            tops=tops,
+            page=page,
+            tags=tags,
+            langs=langs)                     
 
 
 @app.route("/view/(.*)")
@@ -90,15 +109,4 @@ class code_view():
 @app.route("/search")
 class code_search():
     def POST(self):
-        page = int(web.input().get("page",1)) 
-        keyword = web.input().get("keyword")
-        if not keyword:
-            raise web.seeother("/")
-        tops = codestore.list_index(keyword=keyword,limit=50) 
-        if tops:
-            content = codestore.get_content(str(tops[0]['id']))
-            if content:
-                content["content"] = filter_html(content["content"]) 
-                return render("index.html",tops = tops,content=content) 
-            else:
-                return render("error.html",error="no data") 
+        pass
