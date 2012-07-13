@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>http://www.talkincode.org/</loc>
+        <changefreq>daily</changefreq>
+    </url>  
+    <url>
+        <loc>http://www.talkincode.org/group/</loc>
+        <changefreq>daily</changefreq>
+    </url>        
+    <url>
+        <loc>http://www.talkincode.org/code/</loc>
+        <changefreq>daily</changefreq>
+    </url>      
+    % for url in urls:
+    <url>
+        <loc>${url.get('loc')}</loc>
+        <lastmod>${url.get('lastmod')}</lastmod>
+        <changefreq>${url.get('chgfreq')}</changefreq>
+    </url>
+    % endfor
+</urlset>
