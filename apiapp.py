@@ -140,6 +140,28 @@ class add_post():
         except Exception, e:
             return jsonResult(error="post fail %s"%e)
 
+@app.route("/post/update")
+class update_post():
+    @doauthkey
+    def POST(self):
+        form = web.input()
+        authkey = form.get("authkey")
+        user = groupstore.get_user_byauthkey(authkey)
+        userid = user.get("id")        
+        postid = form.get("postid")
+        title = form.get("title")
+        tags = form.get("tags",'other')
+        content = form.get("content")
+        if not postid  or not content:
+            return jsonResult(error="postid,content can not empty")
+        try:
+            if tags :tags = tags[:255]
+            title = title[:255]
+            groupstore.update_post(postid,userid,title,content,tags)
+            return jsonResult(result="update post success")
+        except Exception, e:
+            return jsonResult(error="update post fail %s"%e)            
+
 @app.route("/comment/add")
 class add_comment():
     @doauthkey

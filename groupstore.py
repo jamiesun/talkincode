@@ -108,7 +108,7 @@ def list_posts_by_user(userid,page=1,limit=pagesize):
         offset = (page -1) * limit     
     try:      
         cur.execute("""
-            SELECT p.id,p.userid,u.username,p.title,p.tags,p.description,
+            SELECT p.id,p.userid,u.username,u.email,p.title,p.tags,p.description,
              p.content, p.STATUS,p.hits,p.created,p.modified,p.via
             FROM posts p,users u
             WHERE p.userid = %s
@@ -267,7 +267,7 @@ def add_post(userid,title=None,tags=None,content=None,codeid=None,via=None):
         cur.close()
         conn.close()    
 
-def update_post(uid,content=None):
+def update_post(uid,userid,title=None,content=None,tags=None):
     logger.info("update post id=%s"%(uid))
     if not uid:return
     if not content:
@@ -277,7 +277,16 @@ def update_post(uid,content=None):
     cur = conn.cursor()
     try:
         modified = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
-        cur.execute("update posts set content= %s modified = %s  where id = %s",(content,modified,uid))
+        cur.execute("select id,title,content,tags from posts where id=%s and userid=%s",(uid,userid))
+        postobj = cur.fetchone()
+        if not postobj:
+            raise Exception("post not exists or you are not the author ")
+
+        if not title:title = postobj['title']
+        if not tags:tags = postobj['tags']
+
+        cur.execute("update posts set title=%s,content=%s,tags=%s,modified = %s  where id = %s",
+            (title,content,tags,modified,uid))
         if web.config.debug:
             logger.info("execute sql: %s "%cur._executed)        
         conn.commit()

@@ -100,6 +100,39 @@ def login(username,password):
         cur.close()
         conn.close()     
 
+def sitemap_data():
+    conn = get_conn()
+    cur = conn.cursor()
+    urlset = []
+    try:
+        cur.execute("select id,modified from posts order by id desc")
+        cur.fetchall()
+
+        for row in cur:
+            lastmod_tmp = datetime.datetime.strptime(row[1],"%Y-%m-%d %H:%M:%S")
+            lastmod = lastmod_tmp.strftime("%Y-%m-%dT%H:%M:%SZ")
+            url = dict(loc="http://www.talkincode.org/group/post/view/%s"%row[0],
+                       lastmod=lastmod,chgfreq="daily")
+            urlset.append(url)
+
+        cur.execute("select id,create_time from codes order by id desc")
+        cur.fetchall()
+
+        for row in cur:
+            lastmod_tmp = datetime.datetime.strptime(row[1],"%Y-%m-%d %H:%M:%S")
+            lastmod = lastmod_tmp.strftime("%Y-%m-%dT%H:%M:%SZ")
+            url = dict(loc="http://www.talkincode.org/code/view/%s"%row[0],
+                       lastmod=lastmod,chgfreq="monthly")
+            urlset.append(url)                    
+          
+        return urlset
+    except Exception,e:
+        logger.error("login error,%s"%e)
+        return []
+    finally:
+        cur.close()
+        conn.close()    
+
 
 def initdata():
     conn = get_conn()

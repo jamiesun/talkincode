@@ -81,6 +81,7 @@ def notfound():
     return web.notfound("Sorry, the page you were looking for was not found.")
 
 def errorpage(msg):
+    web.header("Content-Type","text/html; charset=utf-8")
     return render("error.html",error=msg)        
 
     

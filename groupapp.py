@@ -124,6 +124,7 @@ class get_post():
                 post=post,
                 comments=comments,
                 page=page,
-                code=code)
+                code=code,
+                pagename=post.get('title'))
         except Exception,e:
             return errorpage("error %s"%e)

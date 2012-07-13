@@ -9,7 +9,7 @@
 <%def name="body()">
 <div  class="container-fluid">
 <div class="row-fluid">
-<div class="span9">
+<div class="span8">
   <div class="row-fluid">
 
   <table class="table">
@@ -26,17 +26,13 @@
     <table class="table">
      <thead>
         <tr>
-          <th>热度</th>
-          <th>语言</th>
-          <th>标题</th>
-          <th>分享者</th>
-          <th>时间</th>
+
         </tr>
       </thead>    
       <tbody>
       % for topit in tops[:10]:
         <tr>
-          <td><span class="badge">${topit['hits']}</span></td>
+          <td><span class="badge badge-info">${topit['hits']}</span></td>
           <td><span class="label label-info">${topit['lang']}</span></td>
           <td><a alt="${topit['tags']}" href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
           <td><a href="#">${topit['author']}</a></td>
@@ -64,7 +60,8 @@
     % for topit in posts:
     <tr>
       <td >
-        <span ><span class="badge">${topit['hits']}</span> 
+        <div class="post-meta"><img src="${ctx.get_avatar(ctx.get_user(topit['userid'])['email'],35)}" ></div> 
+        <div class="post-meta"> <span class="badge badge-info">${topit['hits']}</span></div> 
       </td>
       <td>
         <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>

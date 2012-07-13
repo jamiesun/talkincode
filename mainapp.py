@@ -3,6 +3,7 @@
 """
 @description:a sublime text plugin used post code to a share library
 """
+import urllib, hashlib
 from settings import route_app,render,logger
 from settings import errorpage
 from store import get_conn
@@ -40,12 +41,25 @@ else:
    session = web.config._session
 
 made = markdown.Markdown(safe_mode='escape')
+
+def get_avatar(email=None,size=40):
+    default = "http://www.talkincode.org/static/img/avatar.gif"    
+    if not email:
+        return default
+    # Set your variables here
+
+    # construct the url
+    gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.md5(email.lower()).hexdigest() + "?"
+    gravatar_url += urllib.urlencode({'d':default, 's':str(size)})
+    return gravatar_url
+
 def context_hook():
     web.ctx.config = config
     web.ctx.pagesize = pagesize
     web.ctx.session = session
     web.ctx.db = get_conn
     web.ctx.md = made
+    web.ctx.get_avatar = get_avatar
     web.ctx.get_user=groupstore.get_user
 app.add_processor(web.loadhook(context_hook))   
 
@@ -147,9 +161,29 @@ class login():
 
 @app.route("/search")
 class code_search():
-    def POST(self):
-        return None     
+    def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
+        q = web.input().get("q")
+        if not q:
+            raise web.seeother("/",absolute=True)
+        try:
+            posts = groupstore.search_posts(q,limit=50)  
+            codes = codestore.list_index(q,limit=50)
+            tags = tagstore.get_tags()
+            return render("search.html",
+                posts=posts,
+                codes=codes,
+                tags=tags) 
+        except Exception, e:
+            return errorpage("error %s"%e)
 
+@app.route("/sitemaps.xml")
+class sitemaps():
+    def GET(self):
+        '''sitemaps'''
+        web.header("Content-Type","text/xml; charset=utf-8")
+        urls = store.sitemap_data()
+        return render("sitemaps.xml",urls=urls)
 
 class GEventServer():
     """ gevent wsgi服务器定义，可利用多进程
@@ -195,6 +229,7 @@ if __name__ == "__main__":
         app.run()
     else:
         start_server()
+
 
     
 
