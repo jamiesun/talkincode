@@ -16,7 +16,7 @@
     % if code :
      <div class="alert alert-success">相关代码：<a href="/code/view/${code["id"]}">${code["title"]}</a></div>
     % endif    
-    <div class="well"> 
+    <div > 
     <p >
      <a href="#">@${ctx.get_user(post['userid'])["username"]}</a> &nbsp;&nbsp;标签：
       % for tag in post["tags"].split(","):
@@ -71,7 +71,7 @@
       <input name="email" type="email" required="required" class="span4" placeholder="输入email">
       <input name="url" type="url"   class="span4" placeholder="输入主页地址">
       % endif
-      <label>评论内容（支持<a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>语法）</label>
+      <label>评论内容（支持<a href="http://www.talkincode.org/group/post/view/fd1f3be720884decbbd40f659cf1157a">markdown</a>语法）</label>
        <textarea class="input-xlarge" id="content" name="content"  required="required"  rows="6" style="margin: 0px; width: 680px; height: 120px; "></textarea>  
       <br/>
       <button type="submit" class="btn">立即发表</button>

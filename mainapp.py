@@ -90,7 +90,7 @@ class img():
 class index():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
-        tops = codestore.list_index(limit=5) 
+        tops = codestore.list_index(limit=10) 
         langs = codestore.list_langs()
         stats = groupstore.get_post_stats(False)
         posts = groupstore.list_posts(limit=20)
