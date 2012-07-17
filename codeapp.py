@@ -21,7 +21,7 @@ class index():
         page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
         tags = tagstore.get_code_tags()
-        tops = codestore.list_index(page=page) 
+        tops = codestore.list_index(page=page,limit=50) 
         return render("code.html",tops = tops,langs=langs,tags=tags,page=page) 
 
 @app.route("/add")
@@ -92,7 +92,7 @@ class index_cat():
         page = int(web.input().get("page",1)) 
         langs = codestore.list_langs()
         tags = tagstore.get_code_tags()
-        tops = codestore.list_codes_bylang(lang,page=page) 
+        tops = codestore.list_codes_bylang(lang,page=page,limit=50) 
         return render("code.html",
             tops = tops,
             tags=tags,
@@ -107,7 +107,7 @@ class index_cat():
         page = int(web.input().get("page",1)) 
         tags = tagstore.get_code_tags()
         langs = codestore.list_langs()
-        tops = codestore.list_codes_bytags(tag,page=page) 
+        tops = codestore.list_codes_bytags(tag,page=page,limit=50) 
         return render("code.html",
             tops=tops,
             page=page,

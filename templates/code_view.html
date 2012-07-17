@@ -57,7 +57,7 @@ function setStyle(stylename)
           % else:
             <span><a href="${comment.get('url')}" rel="nofollow">${comment.get("author")}</a> </span>&nbsp;&nbsp;
           % endif
-          <span class="active">${comment['created']} </span> &nbsp;&nbsp;       
+          <span class="active">${ctx.convtime(comment['created'])} </span> &nbsp;&nbsp;       
            % if comment.get("via"):
            <span class="active">via: ${comment['via']} </span> &nbsp;&nbsp;    
            % endif
@@ -111,6 +111,7 @@ function setStyle(stylename)
        </li>
        <br>
        <li><a class="btn btn-small" href="/group/post/add?codeid=${content["id"]}">发起讨论</a> </li>
+       <li><a class="btn btn-small" href="/code/add">分享代码</a> </li>
        </ul>
     </div>
     <div class="well sidebar-nav">

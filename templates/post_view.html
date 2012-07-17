@@ -46,7 +46,7 @@
           % else:
             <span><a href="${comment.get('url')}" rel="nofollow">${comment.get("author")}</a> </span>&nbsp;&nbsp;
           % endif
-          <span class="active">${comment['created']} </span> &nbsp;&nbsp;       
+          <span class="active">${ctx.convtime(comment['created'])} </span> &nbsp;&nbsp;       
            % if comment.get("via"):
            <span class="active">via: ${comment['via']} </span> &nbsp;&nbsp;    
            % endif

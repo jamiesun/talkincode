@@ -14,7 +14,7 @@
   <input name="title" type="text"  autofocus="autofocus" required="required" class="span7" placeholder="输入标题">
   <label>标签</label>
   <input name="tags" type="text" class="span7" placeholder="输入标签,使用英文逗号分隔">
-  <select id="lang" required="required">
+  <select id="lang" name="lang" required="required">
         <option value="">选择编程语言</option>
     % for lang in langs: 
         <option value="${lang["name"]}">${lang["name"]}</option>

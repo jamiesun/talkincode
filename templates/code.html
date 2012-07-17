@@ -10,21 +10,24 @@
 <div class="row-fluid">
   <div class="span8">
     <div class="row-fluid">
-    <!-- //codes list -->
+
     <a class="btn" href="/code/add">发布代码</a> 
+
     <table class="table">
      <thead>
-        <tr>
-        </tr>
+      <tr>
+        <th></th>
+        <th></th>
+      </tr>
       </thead>    
       <tbody>
       % for topit in tops:
         <tr>
-          <td><span class="badge">${topit['hits']}</span></td>
           <td><span class="label label-info">${topit['lang']}</span></td>
           <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
           <td><a href="#">@${topit['author']}</a></td>
-          <td>${topit['create_time']}</td>
+          <td>${ctx.convtime(topit['create_time'])}</td>
+          <td><span class="badge badge-info">${topit['hits']}</span></td>
         </tr>
       % endfor
       </tbody>
@@ -33,7 +36,7 @@
     % if page > 1:
       <li><a href="${ctx.env.get("PATH_INFO")}?page=${page-1}">上一页</a></li>
     % endif
-    % if tops and len(tops)>= ctx.pagesize: 
+    % if tops and len(tops)>= 50: 
       <li><a href="${ctx.env.get("PATH_INFO")}?page=${page+1}">下一页</a></li>
     % endif
     </ul> 

@@ -32,11 +32,11 @@
       <tbody>
       % for topit in tops[:10]:
         <tr>
-          <td><span class="badge badge-info">${topit['hits']}</span></td>
           <td><span class="label label-info">${topit['lang']}</span></td>
           <td><a alt="${topit['tags']}" href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
           <td><a href="#">${topit['author']}</a></td>
-          <td>${topit['create_time']}</td>
+          <td>${ctx.convtime(topit['create_time'])}</td>
+          <td><span class="badge badge-info">${topit['hits']}</span></td>
         </tr>
       % endfor
       </tbody>
@@ -59,21 +59,22 @@
     <tbody>    
     % for topit in posts:
     <tr>
-      <td >
+      <td width="45">
         <div class="post-meta"><img src="${ctx.get_avatar(ctx.get_user(topit['userid'])['email'],35)}" ></div> 
-        <div class="post-meta"> <span class="badge badge-info">${topit['hits']}</span></div> 
       </td>
       <td>
         <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
-        <p >${topit["content"][:160]}......</p>
         <div >
           <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
-          <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
+          <span class="active">${ctx.convtime(topit['modified'])} </span> &nbsp;&nbsp; 
            % for tag in topit["tags"].split(","):
             <span ><a href="/group/tag/${tag}">${tag}</a></span>
            % endfor          
         </div>             
         </td>
+        <td >
+          <div class="post-meta"> <span class="badge badge-info">${topit['hits']}</span></div> 
+        </td>         
         </tr>
     % endfor
     </tbody>

@@ -7,7 +7,7 @@ import urllib, hashlib
 from settings import route_app,render,logger
 from settings import errorpage
 from store import get_conn
-from settings import config,pagesize
+from settings import config,pagesize,convtime
 import web
 import cgi
 import codestore
@@ -59,6 +59,7 @@ def context_hook():
     web.ctx.session = session
     web.ctx.db = get_conn
     web.ctx.md = made
+    web.ctx.convtime=convtime
     web.ctx.get_avatar = get_avatar
     web.ctx.get_user=groupstore.get_user
 app.add_processor(web.loadhook(context_hook))   

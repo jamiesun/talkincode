@@ -65,6 +65,39 @@ _lookup = TemplateLookup(directories=['./templates'],
 pagesize = 30
 
 
+def convtime(ctime):
+    if not ctime:
+        return ''
+    cdate = datetime.datetime.strptime(ctime,'%Y-%m-%d %H:%M:%S')
+    nowdate = datetime.datetime.now()
+    dt = nowdate - cdate
+    secs = dt.total_seconds() 
+
+    if secs < 60:
+        return u"刚刚"
+    minute = int(secs/60)
+    if minute >= 1 and minute < 60 :
+        return u"%s分钟前"%minute
+
+    hours = int(secs / (60*60))
+    if hours >= 1 and hours < 24 :
+        return u"%s小时前"%hours  
+
+    days = int(secs / (60*60*24))
+    if days >=1 and days<31:
+        return u"%s天前"%days  
+
+    months = int(secs / (60*60*24*30))
+    if months >=1 and months<12:
+        return u"%s月前"%months  
+
+    years = int(secs / (60*60*24*365))
+    return u"%s年前"%years  
+   
+
+
+
+
 def render(filename,**args):
     """ define mako render function """
     try:
@@ -155,5 +188,9 @@ def filter_html(htmlstr):
     htmlstr = htmlstr.replace("<","&lt;")
     htmlstr = htmlstr.replace(">","&gt;")
     return htmlstr
+
+
+if __name__ == "__main__":
+    print convtime('2010-01-14 10:15:23')
 
 

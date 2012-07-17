@@ -1,19 +1,6 @@
 <%inherit file="base.html"/>
 
 <%def name="head()"> 
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-33313432-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
 </%def> 
 
 
@@ -46,10 +33,9 @@
               </td>
               <td>
                 <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
-                <p >${ctx.md.convert(topit["content"][:165])}......</p>
                 <div >
                   <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
-                  <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
+                  <span class="active">${ctx.convtime(topit['modified'])} </span> &nbsp;&nbsp; 
                    % for tag in topit["tags"].split(","):
                     <span ><a href="/tags/list/${tag}">${tag}</a></span>
                    % endfor          
@@ -69,11 +55,11 @@
             <tbody>
             % for topit in codes:
               <tr>
-                <td><span class="badge">${topit['hits']}</span></td>
                 <td><span class="label label-info">${topit['lang']}</span></td>
                 <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
                 <td><a href="#">@${topit['author']}</a></td>
-                <td>${topit['create_time']}</td>
+                <td>${ctx.convtime(topit['create_time'])}</td>
+                <td><span class="badge badge-info">${topit['hits']}</span></td>
               </tr>
             % endfor
             </tbody>
