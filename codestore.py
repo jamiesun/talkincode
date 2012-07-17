@@ -55,6 +55,29 @@ def add_code(pid=0,title=None,author=None,email=None, tags=None,
         cur.close()
         conn.close()
 
+def add_comment(postid,content,userid=None,author=None,email=None,url=None,ip=None,agent=None,status=0,via=None):
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute("select count(*) from codes where id = %s",postid)
+        if cur.fetchone()[0] == 0:
+            raise Exception("code not exists")
+        modified = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
+        uid = uuid.uuid4().hex
+        cur.execute("""
+        INSERT INTO comments
+        (id, postid, author,content, userid, email, url, ip, agent,status, created,via)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s) """,
+        (uid,postid,author,content,userid,email,url,ip,agent,status,modified,via))
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)        
+        conn.commit()            
+    except Exception,e:
+        logger.error("add_comment error %s"%e)
+        raise
+    finally:
+        cur.close()
+        conn.close()
 
 def list_index(keyword=None,page=1,limit=pagesize):
     conn = get_conn()

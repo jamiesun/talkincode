@@ -10,7 +10,9 @@
 
 <form class="well span8" action="/code/add" method="post" autocomplete="on">
 <fieldset>
+  <label>标题</label>
   <input name="title" type="text"  autofocus="autofocus" required="required" class="span7" placeholder="输入标题">
+  <label>标签</label>
   <input name="tags" type="text" class="span7" placeholder="输入标签,使用英文逗号分隔">
   <select id="lang" required="required">
         <option value="">选择编程语言</option>
@@ -18,7 +20,6 @@
         <option value="${lang["name"]}">${lang["name"]}</option>
     % endfor
    </select>
-  <label>代码内容</label>
    <textarea class="input-xlarge" id="content" name="content" rows="9" style="margin: 0px; width: 660px; height: 320px; "></textarea>  
   <br/>
   <button type="submit" class="btn">立即发布</button>

@@ -31,11 +31,13 @@
     <thead>
       <tr>
         <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>    
     % for comment in comments:
     <tr>
+      <td><img class="post-meta" src="${ctx.get_avatar(comment.get('email'),35)}" ></td>
       <td>
         <p >${ctx.md.convert(comment["content"])}</p>
         <div >
@@ -67,8 +69,11 @@
     <fieldset>
      <input type="hidden" name="postid" value="${post["id"]}">
       % if not session.get("user"):
+      <label>作者</label>
       <input name="author" type="text" required="required" class="span4" placeholder="输入用户名">
+      <label>电子邮箱</label>
       <input name="email" type="email" required="required" class="span4" placeholder="输入email">
+      <label>主页</label>
       <input name="url" type="url"   class="span4" placeholder="输入主页地址">
       % endif
       <label>评论内容（支持<a href="http://www.talkincode.org/group/post/view/fd1f3be720884decbbd40f659cf1157a">markdown</a>语法）</label>

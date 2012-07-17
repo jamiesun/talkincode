@@ -65,7 +65,7 @@
       </td>
       <td>
         <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
-        <p >${ctx.md.convert(topit["content"][:160])}......</p>
+        <p >${topit["content"][:160]}......</p>
         <div >
           <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
           <span class="active">${topit['modified']} </span> &nbsp;&nbsp; 
