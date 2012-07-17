@@ -48,7 +48,7 @@ function setStyle(stylename)
     <tbody>    
     % for comment in comments:
     <tr>
-      <td><img class="post-meta" src="${ctx.get_avatar(comment.get('email'),35)}" ></td>
+      <td width="45"><img class="post-meta" src="${ctx.get_avatar(comment.get('email'),35)}" ></td>
       <td>
         <p >${ctx.md.convert(comment["content"])}</p>
         <div >
