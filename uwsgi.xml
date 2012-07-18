@@ -1,0 +1,16 @@
+<uwsgi>
+    <pythonpath>/talkincode</pythonpath>    
+    <socket>0.0.0.0:19000</socket>
+    <listen>102400</listen>   
+    <processes>4</processes>
+    <max-requests>102400</max-requests>
+    <buffer-size>32768</buffer-size>
+    <socket-timeout>60</socket-timeout>
+    <profiler>true</profiler>
+    <module>mainapp</module>
+    <master>true</master>             
+    <pidfile>/var/run/uswgi.pid</pidfile>  
+    <limit-as>512</limit-as>
+    <logdate>true</logdate> 
+    <daemonize>/talkincode/logs/uwsgi.log</daemonize>
+</uwsgi>

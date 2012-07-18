@@ -1,39 +1,51 @@
-#!/usr/bin/python2.7
-#encoding:utf-8
+#!/bin/bash
 #
-# chkconfig: - 91 35
-# description: sayincode service script
+# chkconfig: - 15 85
 #
-# activate_this = '/opt/sayincode/pydev/bin/activate_this.py'
-# execfile(activate_this, dict(__file__=activate_this))
-import sys
-import os
+# processname: uwsgi
+# config: /talkincode/uwsgi.xml
 
-python_exec = '/usr/bin/python2.7'
-app_dir = "/talkincode"
-app_script = "mainapp.py"
-def start():
-	os.system("cd %s && exec nohup %s %s &"%(app_dir,python_exec,app_script))
+# source function library
+. /etc/profile
 
-def stop():
-    pass
+# uWSGI config
+CONFIG=/talkincode/uwsgi.xml
+PID=/var/run/uswgi.pid
+UWSGI=/usr/bin/uwsgi
+RETVAL=0
 
+prog="uwsgi"
 
-def restart():
-	stop()
-	start()
+case "$1" in
+  start)
+    # Check that networking is up.
+    [ "${NETWORKING}" = "no" ] && exit 1
 
-if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        if 'start' == sys.argv[1]:
-            start()
-        elif 'stop' == sys.argv[1]:
-            stop()
-        elif 'restart' == sys.argv[1]:
-            restart()
-        else:
-            print "Unknown command"
-            sys.exit(2)
-    else:
-        print "usage: %s start|stop|restart" % sys.argv[0]
-        sys.exit(2)  
+    # The process must be configured first.
+    [ -f $CONFIG ] || exit 6
+
+    echo -n $"Starting $prog. "
+
+    $UWSGI $CONFIG
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/uwsgi
+    echo
+    ;;
+  stop)
+    echo -n $"Shutting down $prog: "
+    kill -9 `cat $PID` >/dev/null 2>&1
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/uwsgi
+    echo
+    ;;
+  restart|reload)
+        $0 stop
+        $0 start
+    RETVAL=$?
+        ;;
+  *)
+    echo $"Usage: $0 {start|stop|restart|reload}"
+    exit 2
+esac
+
+exit $RETVAL

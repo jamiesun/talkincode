@@ -20,7 +20,7 @@ config = {
 logger = logging.getLogger("talkincode")
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(name)-12s %(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S',)
-file_handler = logging.FileHandler("./logs/server.log")
+file_handler = logging.FileHandler("/talkincode/logs/server.log")
 console_handler = logging.StreamHandler(sys.stderr)
 file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
@@ -50,11 +50,11 @@ memary_manager = CacheManager(cache_regions={
 """ define file CacheManager imp """
 cache = CacheManager(**parse_cache_config_options({
     'cache.type': 'file',
-    'cache.data_dir': './cache/data',
-    'cache.lock_dir': './cache/lock'
+    'cache.data_dir': '/talkincode/cache/data',
+    'cache.lock_dir': '/talkincode/cache/lock'
 }))   
 
-_lookup = TemplateLookup(directories=['./templates'],
+_lookup = TemplateLookup(directories=['/talkincode/templates'],
                           input_encoding='utf-8',
                           output_encoding='utf-8',
                           encoding_errors='replace',

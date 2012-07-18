@@ -218,18 +218,22 @@ class GEventServer():
             Process(target=serve_forever, args=tuple()).start()
         serve_forever()
 
-def start_server(port=18000):
-    logger.info('starting server %s'%port)
-    GEventServer(app.wsgifunc(),"0.0.0.0",port).start()
+web.config.debug = False
 
-if __name__ == "__main__":
+application = app.wsgifunc()
+
+# def start_server(port=18000):
+#     logger.info('starting server %s'%port)
+#     GEventServer(mainapp,"0.0.0.0",port).start()
+
+# if __name__ == "__main__":
     
-    import  platform
-    if  platform.system() == "Windows":
-        web.config.debug = False
-        app.run()
-    else:
-        start_server()
+#     import  platform
+#     if  platform.system() == "Windows":
+#         web.config.debug = False
+#         app.run()
+#     else:
+#         start_server()
 
 
     
