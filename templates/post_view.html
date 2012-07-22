@@ -37,17 +37,17 @@
     <tbody>    
     % for comment in comments:
     <tr>
-      <td><img class="post-meta" src="${ctx.get_avatar(comment.get('email'),35)}" ></td>
+      <td width="45"><img class="post-meta" src="${ctx.get_avatar(comment.get('email'),35)}" ></td>
       <td>
         <p >${ctx.md.convert(comment["content"])}</p>
         <div >
           % if comment.get("userid"):
-          <span><a href="#">@${ctx.get_user(comment.get("userid"))["username"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${ctx.get_user(comment.userid)["username"]}</a> </span>&nbsp;&nbsp;
           % else:
-            <span><a href="${comment.get('url')}" rel="nofollow">${comment.get("author")}</a> </span>&nbsp;&nbsp;
+            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author}</a> </span>&nbsp;&nbsp;
           % endif
           <span class="active">${ctx.convtime(comment['created'])} </span> &nbsp;&nbsp;       
-           % if comment.get("via"):
+           % if comment.via:
            <span class="active">via: ${comment['via']} </span> &nbsp;&nbsp;    
            % endif
         </div>             
@@ -67,7 +67,7 @@
     <!-- 评论表单-->
     <form class="well" action="/group/comment/add" method="post" autocomplete="on">
     <fieldset>
-     <input type="hidden" name="postid" value="${post["id"]}">
+     <input type="hidden" name="postid" value="${post.id}">
       % if not session.get("user"):
       <label>作者</label>
       <input name="author" type="text" required="required" class="span4" placeholder="输入用户名">

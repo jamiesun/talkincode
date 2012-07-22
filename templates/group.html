@@ -38,11 +38,12 @@
       <td>
         <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
         <div >
-          <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
-          <span class="active">${ctx.convtime(topit['modified'])} </span> &nbsp;&nbsp; 
+          <span><a href="#">${ctx.get_user(topit['userid'])["username"]}</a> </span> &nbsp;&nbsp;
+          <span class="active">${ctx.convtime(topit['modified'])} </span>  &nbsp;&nbsp; 标签：
            % for tag in topit["tags"].split(","):
             <span ><a href="/group/tag/${tag}">${tag}</a></span>
-           % endfor          
+           % endfor     
+           &nbsp;&nbsp; <span class="btn btn-mini"><a href="/group/post/rec/${topit.id}">赞(${topit.recs})</a></span>     
         </div>             
         </td>
         <td >

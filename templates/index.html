@@ -69,7 +69,7 @@
           <span class="active">${ctx.convtime(topit['modified'])} </span> &nbsp;&nbsp; 
            % for tag in topit["tags"].split(","):
             <span ><a href="/group/tag/${tag}">${tag}</a></span>
-           % endfor          
+           % endfor      
         </div>             
         </td>
         <td >
@@ -94,7 +94,7 @@
         </tr>
       </thead>
       <tbody>
-       % for tag in codetags:
+       % for tag in codetags[:10]:
         <tr>
           <td><a href="/code/tag/${tag[0]}">${tag[0]}</a></td>
           <td><span class="badge badge">${tag[1]}</span></td>
@@ -113,7 +113,7 @@
         </tr>
       </thead>
       <tbody>
-       % for tag in posttags:
+       % for tag in posttags[:10]:
         <tr>
           <td><a href="/group/tag/${tag[0]}">${tag[0]}</a></td>
           <td><span class="badge badge">${tag[1]}</span></td>

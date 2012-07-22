@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
 from settings import route_app,render
-import userstore
+import store
 import web
 
 app  = route_app()
@@ -25,7 +25,7 @@ class index():
         user = session.get("user")
         if not user:
             raise web.seeother("/")
-        userobj = userstore.get_user(user["username"])
+        userobj = store.User.where(username=user.username)
         return render("user_settings.html",user=userobj) 
 
 

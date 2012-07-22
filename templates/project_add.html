@@ -1,0 +1,41 @@
+<%inherit file="base.html"/>
+
+<%def name="head()"> 
+</%def> 
+
+
+<%def name="body()">
+
+<div class="container">
+
+<form class="well span8" action="/open/proj/add" method="post" autocomplete="on">
+<fieldset>
+  <label>标题</label>
+  <input name="title" type="text"  autofocus="autofocus" required="required" class="span6" placeholder="输入标题">
+  <label>图片地址</label>
+  <input name="image" type="text"  class="span6" placeholder="输入标题">
+  <select id="lang" name="lang" required="required">
+        <option value="">选择编程语言</option>
+    % for lang in langs: 
+        <option value="${lang.name}">${lang.name}</option>
+    % endfor
+   </select> 
+  <label>所有者</label>
+  <input name="owner" type="text"  required="required" class="span6" placeholder="项目所有者">  
+  <label>许可协议</label>
+  <input name="license" type="text"  class="span6" placeholder="项目许可协议">  
+  <label>项目主页</label>
+  <input name="homepage" type="text"  required="required" class="span6" placeholder="项目主页">      
+  <label>标签</label>
+  <input name="tags" type="text" class="span6" placeholder="输入标签,使用英文逗号分隔">
+  <label>项目描述（支持<a href="http://www.talkincode.org/group/post/view/fd1f3be720884decbbd40f659cf1157a">markdown</a>语法）</label>
+   <textarea class="input-xlarge" id="content" name="content" rows="9" style="margin: 0px; width: 600px; height: 280px; "></textarea>  
+  <br/>
+  <button type="submit" class="btn">立即提交</button>
+  <button type="button" class="btn" onclick="history.go(-1);">取消提交</button>
+  </fieldset>
+</form>
+
+</div>
+
+</%def> 

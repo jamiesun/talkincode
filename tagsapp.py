@@ -1,9 +1,8 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import route_app,render
-import tagstore
-import groupstore
-import codestore
+from settings import route_app,render,pagesize
+import store
+
 import web
 
 app  = route_app()
@@ -23,10 +22,10 @@ class index():
 class index():
     def GET(self,tag):
         web.header("Content-Type","text/html; charset=utf-8")
-        langs = codestore.list_langs()   
-        posts = groupstore.list_posts_by_tag(tag,limit=50)  
-        codes = codestore.list_codes_bytags(tag,limit=50)
-        tags = tagstore.get_tags()
+        langs = store.Lang.where()
+        posts = store.Post.where("tags like %s",'%%%s%%'%tag)[:50]
+        codes = store.Code.where("tags like %s",'%%%s%%'%tag)[:50]
+        tags = store.get_tags(30)
         return render("tags_list.html",
             langs = langs,
             posts=posts,

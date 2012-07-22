@@ -1,10 +1,8 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import route_app,filter_html,render,logger
+from settings import route_app,render,pagesize
 from settings import errorpage,auth_user
-import tagstore
-import groupstore
-import codestore
+import store
 import web
 
 app  = route_app()
@@ -19,9 +17,10 @@ class index():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        stats = groupstore.get_post_stats(False)
-        tops = groupstore.list_posts(page=page)
-        tags = tagstore.get_post_tags()
+        offset = (page-1)*pagesize
+        stats = store.get_post_stats(False)
+        tops = store.Post.where().order_by("modified desc")[offset:pagesize]
+        tags = store.get_post_tags(30)
         return render("group.html",
             tops = tops,
             stats=stats,
@@ -33,9 +32,10 @@ class index():
     def GET(self,tag):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        tags = tagstore.get_post_tags()
-        stats = groupstore.get_post_stats(tag)
-        tops = groupstore.list_posts_by_tag(tag,page=page)
+        offset = (page-1)*pagesize
+        tags = store.get_post_tags(30)
+        stats = store.get_post_stats(tag)
+        tops = store.Post.where("tags like %s",'%%%s%%'%tag).order_by("modified desc")[offset:pagesize]
         return render("group.html",
             ctag=tag,
             tops = tops,
@@ -53,19 +53,19 @@ class add_post():
 
     @auth_user
     def POST(self):
+        post = store.Post(id=store.nextid())
         user = web.ctx.session.get("user")
         form = web.input()
-        codeid = form.get("codeid")
-        title = form.get("title")
-        tags = form.get("tags")
-        content = form.get("content")
-        userid = user["id"]
-        if not title  or not content:
+        post.codeid = form.get("codeid")
+        post.title = form.get("title")
+        post.tags = form.get("tags","other")[:255]
+        post.content = form.get("content")
+        post.userid = user.id
+        post.created = post.modified = store.currtime()
+        if not post.title  or not post.content:
             return errorpage(u"请输入完整数据")
         try:
-            if tags :tags = tags[:255]
-            title = title[:255]
-            groupstore.add_post(userid,title,tags,content,codeid)
+            post.save()
             raise web.seeother("/group/",absolute=True)
         except Exception, e:
             return errorpage("add post error %s"%e)
@@ -74,28 +74,29 @@ class add_post():
 class add_comment():
     def POST(self):
         try:
+            comment = store.Comment()
+            comment.id = store.nextid()
             user = web.ctx.session.get("user")
-            userid = user and user["id"] or None  
+            comment.userid = user and user.id or ''  
             form = web.input()
-            author = user and user["username"] or form.get("author")
-            content = form.get("content")
-            postid = form.get("postid")
-            email = user and user["email"] or form.get("email")
-            url =  user and user["url"] or form.get("url")
-            ip = web.ctx.ip
-            agent =  web.ctx.env.get('HTTP_USER_AGENT')
-            status = userid and 1 or 0
-            if author : author = author[:64]
-            if email :email = email[:128]
-            if url : url = url[:128]
+            comment.author = user and user.username or form.get("author")
+            comment.content = form.get("content")
+            comment.postid = form.get("postid")
+            comment.email = user and user.email or form.get("email")
+            comment.url =  user and user.url or form.get("url")
+            comment.ip = web.ctx.ip
+            comment.agent =  web.ctx.env.get('HTTP_USER_AGENT')
+            comment.status = comment.userid and 1 or 0
+            comment.created = store.currtime()
 
-            if not content:
+            if not comment.content:
                 raise Exception('content not empty')
-            if not userid:
-                if not author or not email :
+            if not comment.userid:
+                if not comment.author or not comment.email :
                     raise Exception('author email not empty') 
-            groupstore.add_comment(postid,content,userid,author,email,url,ip,agent,status)
-            raise web.seeother("/group/post/view/%s"%postid,absolute=True)
+            comment.save()
+            store.Comment.commit()
+            raise web.seeother("/group/post/view/%s"%comment.postid,absolute=True)
         except Exception, e:
             return errorpage("add comment error %s"%e)    
 
@@ -112,13 +113,15 @@ class get_post():
         web.header("Content-Type","text/html; charset=utf-8")
         try:
             page = int(web.input().get("page",1)) 
-            post = groupstore.get_content(uid)
-            tags = tagstore.get_post_tags()
-            codeid = post.get("codeid")
+            post = store.Post.get(uid)
+            post.hits += 1
+            post.save()
+            tags = store.get_post_tags(30)
+            codeid = post.codeid
             code = None
             if codeid:
-                code = codestore.get_content(codeid)
-            comments = groupstore.list_comments(uid,page=page)
+                code = store.Code.get(codeid)
+            comments = store.Comment.where(postid=uid).order_by("created desc")[(page-1)*pagesize:pagesize]
             return render("post_view.html",
                 tags=tags,
                 post=post,
@@ -128,3 +131,17 @@ class get_post():
                 pagename=post.get('title'))
         except Exception,e:
             return errorpage("error %s"%e)
+
+
+@app.route("/post/rec/(.*)")
+class index():
+    def GET(self,uid):
+        web.header("Content-Type","text/html; charset=utf-8")
+        post = store.Post.get(uid)
+        try:
+            if post:
+                post.recs += 1
+                post.save()
+        except:
+            pass
+        raise web.seeother("/group/",absolute=True)

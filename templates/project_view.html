@@ -1,42 +1,22 @@
 <%inherit file="base.html"/>
 
 <%def name="head()"> 
-<link id="codestyle" href="/js/prettify/prettify.css" rel="stylesheet" />
-<script src="/js/prettify/prettify.js"></script>
-<script>
-$(document).ready(function(){
-     prettyPrint();
-})
 
-function setStyle(stylename)
-{
-     $("#codestyle").attr("href","/js/prettify/"+stylename+".css")
-}
-</script>
 </%def> 
 
 
 <%def name="body()">
 <div class="container-fluid">
 <div class="row-fluid">
-  <div class="span8">
-    <div class="row-fluid">    
+  <div class="span8"> 
+    <div class="row-fluid">
     <div class="page-header">
-      <h3>${content["title"]}</h3>
-    </div>      
-    <div>    
-    <select class="pull-right" onchange="setStyle(this.value);" >
-         <option value="prettify">默认样式</option>
-         <option value="sons-of-obsidian">sons-of-obsidian</option>
-         <option value="sunburst">sunburst</option>
-    </select> 
+      <h3>${proj.name}</h3>
+    </div>     
+    <div > 
+    ${ctx.md.convert(proj.description)}
     </div>
-
-    <!-- //start codes -->
-    <pre class="prettyprint Lang-${content["lang"]} linenums">${content["content"]}</pre>
-     <!-- //end codes -->
-
-
+    
     <!-- 评论列表-->
     <table class="table">
     <thead>
@@ -67,7 +47,7 @@ function setStyle(stylename)
     % endfor
     </tbody>
    </table>
-    <ul class="pager">
+       <ul class="pager">
       % if page > 1:
         <li><a href="${ctx.env.get("PATH_INFO")}?page=${page-1}">上一页</a></li>
       % endif
@@ -76,9 +56,9 @@ function setStyle(stylename)
       % endif
       </ul>
     <!-- 评论表单-->
-    <form class="well" action="/code/comment/add" method="post" autocomplete="on">
+    <form class="well" action="/open/comment/add" method="POST" autocomplete="on">
     <fieldset>
-     <input type="hidden" name="postid" value="${content.id}">
+      <input type="hidden" name="postid" value="${proj.id}">
       % if not session.get("user"):
       <label>作者</label>
       <input name="author" type="text" required="required" class="span4" placeholder="输入用户名">
@@ -96,48 +76,24 @@ function setStyle(stylename)
     </div>
   </div>
  <!-- //评论表单-->
-
-
   <div class="span3">
-      <div class="well">
+    <div class="well">
       <ul class="nav">
-        <li>发布者：<a href="#">${content['author']}</a></li>
-        <li>编程语言: <a href="/code/category/${content['lang']}">${content['lang']}</a></li>
-        <li>浏览次数: ${content['hits']}</li>
+        <li>所有者：<a href="${proj.homepage}">${proj.owner}</a></li>
+        <li>编程语言: ${proj.lang}</a></li>
+        <li>浏览次数: ${proj.hits}</li>
         <li>标签：
-        % for tag in content["tags"].split(","):
-          <a href="/code/tag/${tag}#codetab">${tag}</a>
+        % for tag in proj.tags.split(","):
+          <a href="/open/tag/${tag}">${tag}</a>
         % endfor 
-       </li>
+       </li>        
        <br>
-       <li><a class="btn btn-small" href="/code/add">分享代码</a> </li>
-       <li><a class="btn btn-small" href="/group/post/add?codeid=${content["id"]}">发起讨论</a> </li>
-       <li><a class="btn btn-small" href="/code/download/${content["id"]}">下载代码</a> </li>
+       <li><a class="btn btn-small" href="${proj.homepage}">项目主页</a> </li>
        </ul>
-    </div>
-    <div class="well sidebar-nav">
-      <ul class="nav nav-list">
-        <li class="nav-header">所有版本</li>
-        % for topit in versions:
-        <li><a href="/code/view/${topit['id']}"> <i class="icon-list-alt"></i>${topit['title']}</a></li>
-        % endfor
-      </ul>
     </div><!--/.well -->
-    <div class="well sidebar-nav">
-      <ul class="nav nav-list">
-        <li class="nav-header">相关讨论</li>
-        % for post in posts:
-        <li><a href="/group/post/view/${post['id']}"> <i class="icon-list-alt"></i>${post['title']}</a></li>
-        % endfor
-      </ul>
-
-    </div><!--/.well -->    
   </div><!--/span-->
   </div><!--/row-->
 </div>
-
-
-
 
 </%def> 
 

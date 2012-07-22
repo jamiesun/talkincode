@@ -4,22 +4,19 @@
 @description:a sublime text plugin used post code to a share library
 """
 import urllib, hashlib
-from settings import route_app,render,logger
-from settings import errorpage
-from store import get_conn
-from settings import config,pagesize,convtime
+from settings import route_app,render
+from settings import errorpage,logger
+from settings import config,pagesize
+from tools import convtime
 import web
 import cgi
-import codestore
-import groupstore
-import os
 import apiapp
 import codeapp
 import groupapp
 import userapp
 import tagsapp
+import opensapp
 import store
-import tagstore
 import markdown
 
 
@@ -29,6 +26,7 @@ cgi.maxlen = 10 * 1024 * 1024 # 10MB
 app  = route_app()
 app.mount("/api",apiapp.app)
 app.mount("/code",codeapp.app)
+app.mount("/open",opensapp.app)
 app.mount("/group",groupapp.app)
 app.mount("/user",userapp.app)
 app.mount("/tags",tagsapp.app)
@@ -57,11 +55,10 @@ def context_hook():
     web.ctx.config = config
     web.ctx.pagesize = pagesize
     web.ctx.session = session
-    web.ctx.db = get_conn
     web.ctx.md = made
     web.ctx.convtime=convtime
     web.ctx.get_avatar = get_avatar
-    web.ctx.get_user=groupstore.get_user
+    web.ctx.get_user=store.get_user
 app.add_processor(web.loadhook(context_hook))   
 
 
@@ -91,12 +88,12 @@ class img():
 class index():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
-        tops = codestore.list_index(limit=10) 
-        langs = codestore.list_langs()
-        stats = groupstore.get_post_stats(False)
-        posts = groupstore.list_posts(limit=20)
-        codetags = tagstore.get_code_tags()
-        posttags =  tagstore.get_post_tags()
+        tops = store.Code.where().order_by("create_time desc")[:10] 
+        langs = store.Lang.where()
+        stats = store.get_post_stats(False)
+        posts = store.Post.where().order_by("created desc")[:pagesize]
+        codetags = store.get_code_tags(30)
+        posttags =  store.get_post_tags(30)
         return render("index.html",
             tops = tops,
             posts=posts,
@@ -165,18 +162,8 @@ class code_search():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
         q = web.input().get("q")
-        if not q:
-            raise web.seeother("/",absolute=True)
-        try:
-            posts = groupstore.search_posts(q,limit=50)  
-            codes = codestore.list_index(q,limit=50)
-            tags = tagstore.get_tags()
-            return render("search.html",
-                posts=posts,
-                codes=codes,
-                tags=tags) 
-        except Exception, e:
-            return errorpage("error %s"%e)
+        qstr = "http://www.google.com/search?q=site:talkincode.org %s"%q
+        raise web.seeother(qstr)
 
 @app.route("/sitemaps.xml")
 class sitemaps():
@@ -201,7 +188,7 @@ class GEventServer():
         monkey.patch_socket()
         monkey.patch_os()
         from gevent.wsgi import WSGIServer
-        server = WSGIServer((self.host, self.port), self.handler,log=None)
+        server = WSGIServer((self.host, self.port), self.handler)
         server.pre_start()
         def serve_forever():
             logger.info('starting server')
@@ -220,20 +207,19 @@ class GEventServer():
 
 web.config.debug = False
 
-application = app.wsgifunc()
+application = app.wsgifunc()        
 
-# def start_server(port=18000):
+# def start_server(port=19000):
 #     logger.info('starting server %s'%port)
-#     GEventServer(mainapp,"0.0.0.0",port).start()
+#     GEventServer(application,"0.0.0.0",port).start()
 
 # if __name__ == "__main__":
-    
 #     import  platform
-#     if  platform.system() == "Windows":
+#     if  1:#platform.system() == "Windows":
 #         web.config.debug = False
 #         app.run()
-#     else:
-#         start_server()
+    # else:
+    #     start_server()
 
 
     

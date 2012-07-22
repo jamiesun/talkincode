@@ -1,19 +1,31 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
 from settings import route_app,logger
-import codestore
-import groupstore
 import store 
 import json
 import web
 import traceback
+from sqlbean.shortcut import Model
+from re import escape
 """
 @description:talkincode.org  api
 """
 app  = route_app()
 
+def fromModel(obj):
+    if isinstance(obj,Model):
+        dd = {}
+        for fd in obj._fields:
+            val = getattr(obj,fd)
+            if isinstance(val,unicode):
+                dd[fd] = val.encode("utf-8")
+            else:
+                dd[fd] = val 
+        return dd
+    return obj
+
 def jsonResult(**kwargs):
-    return json.dumps(kwargs)
+    return json.dumps(kwargs,default=fromModel)
 
 def doauthkey(func):
     def func_warp(*args,**argkv):
@@ -22,21 +34,18 @@ def doauthkey(func):
             return jsonResult(error="authkey can not empty") 
         if type(authkey) == unicode:
             authkey = str(authkey)            
-        conn = store.get_conn()
-        cur = conn.cursor()
+
         try:
-            cur.execute("select authkey,hits from authkeys where authkey=%s",(authkey))
-            keyobjs = cur.fetchone()
-            if not keyobjs:
+            authkey = store.Authkey.get(authkey=authkey)
+            if not authkey:
                 return jsonResult(error="authkey not exists") 
-            authkey_hits = keyobjs[1]
-            hits = int(authkey_hits) + 1
-            cur.execute("update authkeys set hits = %s where authkey=%s",(hits,authkey))
-            conn.commit()
+
+            authkey.hits += 1
+            authkey.save()
+            store.Authkey.commit()
             return func(*args,**argkv)
-        finally:
-            cur.close()
-            conn.close()
+        except:
+            raise
     return func_warp        
 
 @app.route("/register")
@@ -52,8 +61,6 @@ class register():
             return jsonResult(error=u"email can't empty")
         try:
             user = store.register(username,password,email)
-            usession = web.ctx.session
-            usession["user"] = user 
             return jsonResult(username=username,email=email,authkey=user["authkey"])
         except Exception,e:
             traceback.print_exc()
@@ -64,7 +71,8 @@ class code_add():
     @doauthkey
     def POST(self):
         forms = web.input()
-        params = dict(pid=forms.get("pid"),
+        code = store.Code(id=store.nextid(),
+                      parent=forms.get("pid"),
                       title = forms.get("title"),
                       author = forms.get("author"),
                       email = forms.get("email"),
@@ -73,9 +81,11 @@ class code_add():
                       authkey = forms.get("authkey"),
                       filename = forms.get("filename"),
                       lang=forms.get("lang"),
-                      via=forms.get("via"))
+                      via=forms.get("via"),
+                      create_time=store.currtime())
         try:
-            codestore.add_code(**params)
+            code.save()
+            store.Code.commit()
             return jsonResult(result="code publish success")
         except:
             return jsonResult(error="code publish fail")
@@ -83,13 +93,16 @@ class code_add():
 @app.route("/code/index")
 class code_index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         keyword = web.input().get("q") 
         limit = int(web.input().get("limit",1000))
         if limit > 1000:limit = 1000  
         try:
-            tops = codestore.list_index(keyword=keyword,limit=limit) 
-            return json.dumps(tops)
+            tops = store.Code.where("title like %s",'%%%s%%'%keyword)\
+                         .order_by("-create_time")[:limit]
+            return json.dumps(list(tops),default=fromModel)
         except Exception,e:
+            traceback.print_exc()
             logger.error("query data error %s"%e)
             return jsonResult(error="query data error ")         
 
@@ -97,12 +110,13 @@ class code_index():
 class code_index_my():
     @doauthkey
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         authkey = web.input().get("authkey") 
         limit = int(web.input().get("limit",1000))
         if limit > 1000:limit = 1000  
         try:
-            tops = codestore.list_codes_byauthkey(authkey,limit=limit) 
-            return json.dumps(tops)
+            tops = store.Code.where(authkey=authkey).order_by("-create_time")[:limit]
+            return json.dumps(list(tops),default=fromModel)
         except Exception,e:
             logger.error("query data error %s"%e)
             return jsonResult(error="query data error ")                 
@@ -110,9 +124,10 @@ class code_index_my():
 @app.route("/code/get/(.*)")
 class code_get():
     def GET(self,uid):
+        web.header("Content-Type","text/html; charset=utf-8")
         try:
-            content = codestore.get_content(uid)
-            return json.dumps(content)
+            content = store.Code.get(uid)
+            return json.dumps(content,default=fromModel)
         except:
             return jsonResult(error="query data error")  
   
@@ -121,21 +136,22 @@ class code_get():
 class add_post():
     @doauthkey
     def POST(self):
+        post = store.Post(id=store.nextid())
         form = web.input()
-        authkey = form.get("authkey")
-        user = groupstore.get_user_byauthkey(authkey)
-        userid = user.get("id")
-        codeid = form.get("codeid")
-        title = form.get("title")
-        tags = form.get("tags")
-        content = form.get("content")
-        via = form.get("via")
-        if not title or not content:
+        post.authkey = form.get("authkey")
+        user = store.User.get(authkey=post.authkey)
+        post.userid = user.id
+        post.codeid = form.get("codeid")
+        post.title = form.get("title")
+        post.tags = form.get("tags")
+        post.content = form.get("content")
+        post.via = form.get("via")
+        post.created = post.modified = store.currtime()
+        if not post.title or not post.content:
             return jsonResult(error="title,content can not empty")
         try:
-            if tags :tags = tags[:255]
-            title = title[:255]
-            groupstore.add_post(userid,title,tags,content,codeid,via)
+            post.save()
+            store.Post.commit()
             return jsonResult(result="post success")
         except Exception, e:
             return jsonResult(error="post fail %s"%e)
@@ -146,18 +162,22 @@ class update_post():
     def POST(self):
         form = web.input()
         authkey = form.get("authkey")
-        user = groupstore.get_user_byauthkey(authkey)
+        user = store.User.get(authkey=authkey)
         userid = user.get("id")        
         postid = form.get("postid")
-        title = form.get("title")
-        tags = form.get("tags",'other')
-        content = form.get("content")
-        if not postid  or not content:
+        post = store.Post.get(postid=postid,userid=userid)
+        if not post :
+            return jsonResult(error="you are not the post author")
+
+        post.title = form.get("title")
+        post.tags = form.get("tags",'other')
+        post.content = form.get("content")
+        post.modified = store.currtime()
+        if not post.postid  or not post.content:
             return jsonResult(error="postid,content can not empty")
         try:
-            if tags :tags = tags[:255]
-            title = title[:255]
-            groupstore.update_post(postid,userid,title,content,tags)
+            post.save()
+            store.Post.commit()
             return jsonResult(result="update post success")
         except Exception, e:
             return jsonResult(error="update post fail %s"%e)            
@@ -167,22 +187,24 @@ class add_comment():
     @doauthkey
     def POST(self):
         try:
+            comment = store.Comment(id=store.nextid())
             form = web.input()
             authkey = form.get("authkey")
-            user = groupstore.get_user_byauthkey(authkey)
-            userid = user.get("id")
-            content = form.get("content")
-            postid = form.get("postid")
-            via=form.get("via")
-            author =  user["username"]
-            email = user['email']
-            url = user['url']
-            ip = web.ctx.ip
-            agent =  web.ctx.env.get('HTTP_USER_AGENT')
-            status = 1
-            if not content:
+            user = store.User.get(authkey=authkey)
+            comment.userid = user.id
+            comment.author = user.username
+            comment.content = form.get("content")
+            comment.postid = form.get("postid")
+            comment.via=form.get("via")
+            comment.email = user.email
+            comment.url = user.url
+            comment.ip = web.ctx.ip
+            comment.agent =  web.ctx.env.get('HTTP_USER_AGENT')
+            comment.status = 1
+            if not comment.content:
                 return jsonResult(error="content can not empty")
-            groupstore.add_comment(postid,content,userid,author,email,url,ip,agent,status,via)
+            comment.save()
+            store.Comment.commit()
             return jsonResult(result="post comment success")
         except Exception, e:
             return jsonResult(error="add comment error %s"%e)    
@@ -191,37 +213,68 @@ class add_comment():
 @app.route("/post/index")
 class post_index():
     def GET(self):
-        keyword = web.input().get("q") 
+        web.header("Content-Type","text/html; charset=utf-8")
+        keyword = web.input().get("q",'') 
         limit = int(web.input().get("limit",100))   
         if limit > 1000:limit = 1000     
         try:
-            tops = groupstore.search_posts(keyword,limit=limit) 
-            return json.dumps(tops)
+            sql = """
+            SELECT p.id,codeid,userid,u.username,title,tags,description,
+            content,p.status,hits,p.created,modified,via
+            FROM posts p,users u
+            WHERE title like '%s'
+            and p.userid = u.id
+            order by hits desc
+            LIMIT %s,%s            
+            """%('%%%s%%'%escape(keyword),0,limit)
+
+            cur =  store.Post.raw_sql(sql)
+            result = cur.fetchall()
+            return json.dumps([store.todict(rt,cur.description) for rt in result])
         except Exception,e:
             return jsonResult(error="query post fail %s"%e)
 
 @app.route("/post/my")
 class post_index():
     def GET(self):
+        web.header("Content-Type","text/html; charset=utf-8")
         authkey = web.input().get("authkey") 
-        user = groupstore.get_user_byauthkey(authkey)
-        userid = user.get("id")
+        user = store.User.get(authkey=authkey)
+        userid = user.id
         limit = int(web.input().get("limit",100))   
         if limit > 1000:limit = 1000     
         try:
-            tops = groupstore.list_posts_by_user(userid,limit=limit) 
-            return json.dumps(tops)
+            cur =store.Post.raw_sql("""
+            SELECT p.id,p.userid,u.username,u.email,p.title,p.tags,p.description,
+             p.content, p.STATUS,p.hits,p.created,p.modified,p.via
+            FROM posts p,users u
+            WHERE p.userid = '%s'
+            and p.userid = u.id
+            ORDER BY modified DESC
+            LIMIT %s,%s      
+            """%(escape(userid),0,limit))
+            result = cur.fetchall()
+            return json.dumps([store.todict(rt,cur.description) for rt in result])
         except Exception,e:
             return jsonResult(error="query post fail %s"%e)            
 
 @app.route("/post/get/(.*)")
 class get_post():
     def GET(self,uid):
+        web.header("Content-Type","text/html; charset=utf-8")
         try:
-            post = groupstore.get_content(uid)
-            comments = groupstore.list_comments(uid,limit=100)
-            return jsonResult(post=post,comments=comments)
+            pcur = store.Post.raw_sql("""SELECT p.id,codeid,userid,u.username,title,tags,description,
+            content,p.status,hits,p.created,modified,via
+            FROM posts p,users u  
+            WHERE p.userid = u.id and p.id = '%s'  
+            """%escape(uid))
+            post = store.todict(pcur.fetchone(),pcur.description)
+            comments = store.Comment.where(postid=post.get("id")).order_by("-created")
+            result = jsonResult(post=post,comments=list(comments))
+            return result
         except Exception,e:
+            import traceback
+            traceback.print_exc()
             return jsonResult(error="error %s"%e)
 
 

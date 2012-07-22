@@ -4,21 +4,103 @@
 @description:mysql of python 
 """
 import MySQLdb
-from settings import logger
+from settings import logger,cache
 from DBUtils.PooledDB import PooledDB
 import uuid
 import datetime
+import web
+from sqlbean.db import connection
 
 dbpool = PooledDB(creator=MySQLdb,
-                  maxusage=1000,
-                  host='localhost',
-                  user='root',
-                  passwd='root',
-                  db='talkincode_db1',
-                  charset="utf8"
-                  )
+maxusage=1000,
+host='localhost',
+user='root',
+passwd='root',
+db='talkincode_db1',
+charset="utf8")
 
 get_conn = lambda : dbpool.connection()
+
+DATABASE = dbpool.connection()
+DATABASE.b_commit = True
+
+def get_db_by_table(table_name):
+    return DATABASE
+connection.get_db_by_table = get_db_by_table
+
+from sqlbean.shortcut import Model
+
+class User(Model):
+
+    def __getitem__(self,key):
+        return getattr(self,key)    
+
+    class Meta:
+        pk = "id"
+        table="users"
+        
+class Post(Model):
+    
+    def __getitem__(self,key):
+        return getattr(self,key)    
+
+    class Meta:
+        pk = "id"
+        table="posts"
+
+class Code(Model):
+    
+    def __getitem__(self,key):
+        return getattr(self,key)    
+
+    class Meta:
+        pk = "id"
+        table="codes"
+
+class Project(Model):
+    
+    def __getitem__(self,key):
+        return getattr(self,key)    
+
+    class Meta:
+        pk = "id"  
+        table="projects"      
+
+class Comment(Model):
+
+    def __getitem__(self,key):
+        return getattr(self,key)    
+         
+    class Meta:
+        pk = "id"  
+        table="comments"  
+
+class Tag(Model):
+    
+    def __getitem__(self,key):
+        return getattr(self,key)    
+
+    class Meta:
+        pk = "id"  
+        table="tags"    
+
+class Lang(Model):
+    
+    def __getitem__(self,key):
+        return getattr(self,key)    
+
+    class Meta:
+        pk = "id" 
+        table = "langs"         
+
+class Authkey(Model):
+    
+    def __getitem__(self,key):
+        return getattr(self,key)    
+             
+    class Meta:
+        pk = "authkey" 
+        table = "authkeys"                       
 
 def todict(row,rowdesc):
     d = {}
@@ -26,102 +108,84 @@ def todict(row,rowdesc):
         d[col[0]] = row[idx]
     return d
 
-def get_option(key,default=None):
-    if not key:
-        return None
-    conn = get_conn()
-    cur = conn.cursor()
-    try:
-        cur.execute("select value from settings where key=%s",key)
-        robj = cur.fetchone()
-        if not robj:
-            return default
-        else:
-            return robj[0]
-    except Exception, e:
-        raise e
-    finally:
-        cur.close()
-        conn.close()
+def nextid():
+    return uuid.uuid4().hex
 
+def currtime():
+    return datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
 
 def register(username,password,email):
     if not username or not password or not email:
         raise Exception("username,password,email not empty")
-    conn = get_conn()
-    cur = conn.cursor()
-
     try:
-        cur.execute("select count(*) from users where username=%s",username)
-        user_exists = cur.fetchone()[0]
-        if user_exists:
+        if User.count(username=username):
             raise Exception("username already exists")
 
-        cur.execute("select count(*) from users where email=%s",email)
-        user_exists = cur.fetchone()[0]
-        if user_exists:
-            raise Exception("email already exists")            
+        if User.count(email=email):
+            raise Exception("email already exists")    
 
-        authkey = uuid.uuid4().hex
-        create_time = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
-        cur.execute("insert into authkeys values(%s,%s,%s,%s,%s,%s)",(authkey,username,"",0,create_time,1))
-        cur.execute("insert into users (id,username,nicename,password,email,authkey,created,lastlogin)\
-                      values (%s,%s,%s,%s,%s,%s,%s,%s)",\
-                    (authkey,username,username,password,email,authkey,create_time,create_time))
-        conn.commit()
-        return dict(id=authkey,username=username,email=email,authkey=authkey,lastlogin=create_time)
+        authkey = Authkey()
+        authkey.authkey = uuid.uuid4().hex
+        authkey.consumer = username
+        authkey.description = ""
+        authkey.hits = 0
+        authkey.status = 1
+        authkey.create_time = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
+
+        user  = User()
+        user.id = authkey.authkey
+        user.username = username
+        user.nicename = username
+        user.email = email
+        user.password = password
+        user.authkey = authkey.authkey
+        user.created = authkey.create_time
+        user.lastlogin = authkey.create_time
+
+        User.begin()
+        authkey.save()
+        user.save()
+        User.commit()
+
+
+        return user
     except Exception,e:
+        User.rollback()
         logger.error("register error,%s"%e)
         raise e
-    finally:
-        cur.close()
-        conn.close()
 
 def login(username,password):
     if not username or not password :
         raise Exception("username,password not empty")
-    conn = get_conn()
-    cur = conn.cursor()
-    try:
-        cur.execute("select id,username,email,url,authkey,lastlogin\
-             from users where username=%s and password= %s",(username,password))
-        user = cur.fetchone()
 
+    try:
+        user = User.get(username=username,password=password)
         if not user:
             raise Exception("user not exists")
-        lastlogin = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
-        cur.execute("update users set lastlogin = %s where id= %s",(lastlogin,user[0]))
-        conn.commit()
-        return dict(id=user[0],username=user[1],email=user[2],url=user[3],authkey=user[4],lastlogin=user[5])
+
+        user.lastlogin = datetime.datetime.now().strftime( "%Y-%m-%d %H:%M:%S")
+        user.save()
+        return user
+
     except Exception,e:
         logger.error("login error,%s"%e)
         raise e
-    finally:
-        cur.close()
-        conn.close()     
 
 def sitemap_data():
-    conn = get_conn()
-    cur = conn.cursor()
     urlset = []
     try:
-        cur.execute("select id,modified from posts order by id desc")
-        cur.fetchall()
-
-        for row in cur:
-            lastmod_tmp = datetime.datetime.strptime(row[1],"%Y-%m-%d %H:%M:%S")
+        for post in Post.where():
+            lastmod_tmp = datetime.datetime.strptime(post.modified,"%Y-%m-%d %H:%M:%S")
             lastmod = lastmod_tmp.strftime("%Y-%m-%dT%H:%M:%SZ")
-            url = dict(loc="http://www.talkincode.org/group/post/view/%s"%row[0],
+            url = dict(loc="http://www.talkincode.org/group/post/view/%s"%post.id,
                        lastmod=lastmod,chgfreq="daily")
             urlset.append(url)
 
-        cur.execute("select id,create_time from codes order by id desc")
-        cur.fetchall()
 
-        for row in cur:
-            lastmod_tmp = datetime.datetime.strptime(row[1],"%Y-%m-%d %H:%M:%S")
+        for code in Code.where():
+            lastmod_tmp = datetime.datetime.strptime(code.create_time,"%Y-%m-%d %H:%M:%S")
             lastmod = lastmod_tmp.strftime("%Y-%m-%dT%H:%M:%SZ")
-            url = dict(loc="http://www.talkincode.org/code/view/%s"%row[0],
+            url = dict(loc="http://www.talkincode.org/code/view/%s"%code.id,
                        lastmod=lastmod,chgfreq="monthly")
             urlset.append(url)                    
           
@@ -129,61 +193,198 @@ def sitemap_data():
     except Exception,e:
         logger.error("login error,%s"%e)
         return []
-    finally:
-        cur.close()
-        conn.close()    
 
-
-def initdata():
-    conn = get_conn()
-    cur = conn.cursor()
-    grps = {"python":"python编程",
-            "php":"php编程",
-            "html":"html&css",
-            "func":"函数式编程",
-            "st2":"sublime text 2小站",
-            "vim":"vim小站",
-            "emacs":"emacs小站"}
-    langs = {"c":"c",
-             "c++":"cpp",
-             "java":"java",
-             "c#":"cs",
-             "python":"py",
-             "ruby":"rb",
-             "php":"php",
-             "perl":"pl",
-             "objective-c":"c",
-             "vb":"vb",
-             "javascript":"js",
-             "pascal":"pas",
-             "lisp":"lsp",
-             "sql":"sql",
-             "lua":"lua",
-             "matlab":"m",
-             "shell":"sh",
-             "golang":"go"}
+def get_tags(limit):
+    tagset = {}
     try:
-        count = 0
-        cur.execute("delete from langs")
-        for k,l in langs.items():
-            count += 1 
-            cur.execute("insert into langs (id,name,ext,hits) values(%s,%s,%s,%s)",(count,k,l,0))
-        cur.execute("delete from groups")
-        count = 0
-        for k,g in grps.items():
-            count += 1 
-            cur.execute("insert into groups (id,name,guid,posts) values(%s,%s,%s,%s)",(count,g,k,0))     
-        cur.execute("insert into groups (id,name,guid,posts) values(%s,%s,%s,%s)",(0,"综合讨论","all",0))    
-        conn.commit()
-    except Exception, e:
+        for code in Code.where():
+            tag = code.tags
+            if not tag:
+                continue
+            ts = tag.split(",")
+            for t in ts:
+                if tagset.has_key(t):
+                    tagset[t] += 1
+                else:
+                    tagset[t] = 1
+
+        for post in Post.where():
+            tag = post.tags
+            if not tag:
+                continue
+            ts = tag.split(",")
+            for t in ts:
+                if tagset.has_key(t):
+                    tagset[t] += 1
+                else:
+                    tagset[t] = 1       
+        sort_tags = sorted( tagset.items(),key=lambda d:d[1],reverse=True)
+        print sort_tags
+        return sort_tags[:limit]
+    except Exception,e:
+        logger.error("get tags error,%s"%e)
         raise e
-    finally:
-        cur.close()
-        conn.close()    
+
+#@cache.cache('get_code_tags_func', expire=3600)
+def get_code_tags(limit):
+    tagset = {}
+    try:
+        for code in Code.where():
+            tag = code.tags
+            if not tag:
+                continue
+            ts = tag.split(",")
+            for t in ts:
+                if tagset.has_key(t):
+                    tagset[t] += 1
+                else:
+                    tagset[t] = 1  
+        sort_tags = sorted( tagset.items(),key=lambda d:d[1],reverse=True)
+        return sort_tags[:limit]
+    except Exception,e:
+        logger.error("get post tags error,%s"%e)
+        raise e
+
+def get_post_tags(limit):
+    tagset = {}
+    try:
+        for post in Post.where():
+            tag = post.tags
+            if not tag:
+                continue
+            ts = tag.split(",")
+            for t in ts:
+                if tagset.has_key(t):
+                    tagset[t] += 1
+                else:
+                    tagset[t] = 1  
+        sort_tags = sorted( tagset.items(),key=lambda d:d[1],reverse=True)
+        return sort_tags[:limit]
+    except Exception,e:
+        logger.error("get post tags error,%s"%e)
+        raise e
+
+def get_project_tags(limit):
+    tagset = {}
+    try:
+        for proj in Project.where():
+            tag = proj.tags
+            if not tag:
+                continue
+            ts = tag.split(",")
+            for t in ts:
+                if tagset.has_key(t):
+                    tagset[t] += 1
+                else:
+                    tagset[t] = 1   
+        sort_tags = sorted( tagset.items(),key=lambda d:d[1],reverse=True)
+        return sort_tags[:limit]
+    except Exception,e:
+        logger.error("get post tags error,%s"%e)
+        raise e
+
+#@cache.cache('get_post_stats_func', expire=3600)
+def get_post_stats(tag):
+    try:
+        if tag:      
+            cur = Post.raw_sql("""
+                SELECT COUNT(*) AS total, SUM(hits) AS hits_total
+                FROM posts 
+                where tags like %s
+                """,'%%%s%%'%tag)
+        else:
+            cur = Post.raw_sql("""
+                SELECT COUNT(*) AS total, SUM(hits) AS hits_total
+                FROM posts 
+                """)            
+        if web.config.debug:
+            logger.info("execute sql: %s "%cur._executed)            
+        ones =  cur.fetchone()
+        if ones :
+            return todict(ones,cur.description)
+        else:
+            raise Exception("no result")
+    except:
+        raise    
+
+@cache.cache('get_user_func', expire=3600)
+def get_user(id):
+    return User.get(id)
+
+# def initdata():
+#     conn = get_conn()
+#     cur = conn.cursor()
+#     grps = {"python":"python编程",
+#             "php":"php编程",
+#             "html":"html&css",
+#             "func":"函数式编程",
+#             "st2":"sublime text 2小站",
+#             "vim":"vim小站",
+#             "emacs":"emacs小站"}
+#     langs = {"c":"c",
+#              "c++":"cpp",
+#              "java":"java",
+#              "c#":"cs",
+#              "python":"py",
+#              "ruby":"rb",
+#              "php":"php",
+#              "perl":"pl",
+#              "objective-c":"c",
+#              "vb":"vb",
+#              "javascript":"js",
+#              "pascal":"pas",
+#              "lisp":"lsp",
+#              "sql":"sql",
+#              "lua":"lua",
+#              "matlab":"m",
+#              "shell":"sh",
+#              "golang":"go"}
+#     try:
+#         count = 0
+#         cur.execute("delete from langs")
+#         for k,l in langs.items():
+#             count += 1 
+#             cur.execute("insert into langs (id,name,ext,hits) values(%s,%s,%s,%s)",(count,k,l,0))
+#         cur.execute("delete from groups")
+#         count = 0
+#         for k,g in grps.items():
+#             count += 1 
+#             cur.execute("insert into groups (id,name,guid,posts) values(%s,%s,%s,%s)",(count,g,k,0))     
+#         cur.execute("insert into groups (id,name,guid,posts) values(%s,%s,%s,%s)",(0,"综合讨论","all",0))    
+#         conn.commit()
+#     except Exception, e:
+#         raise e
+#     finally:
+#         cur.close()
+#         conn.close()    
 
 
 if __name__ == "__main__":
-    initdata()
+    """pass"""
+    def fromModel(obj):
+        if isinstance(obj,Model):
+            dd = {}
+            for fd in obj._fields:
+                val = getattr(obj,fd)
+                if isinstance(val,unicode):
+                    dd[fd] = val.encode("utf-8")
+                else:
+                    dd[fd] = val 
+            return dd
+        return obj
+
+
+    import simplejson as json
+    users = list(Post.where())
+    u0 = users[0]
+    print json.dumps(users,default=fromModel)
+    # print isinstance(u0,Model)
+    # # print type(u0)
+    # # print u0._fields
+    # # print dir(u0)
+    # #print obj_hk(u0)
+    # print fromModel(u0)
+    # print json.dumps(fromModel(u0))
     # #register("test2","123456","test@com")
     # conn = get_conn()
     # cur = conn.cursor()

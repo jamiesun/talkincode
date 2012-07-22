@@ -1,0 +1,82 @@
+<%inherit file="base.html"/>
+
+<%def name="head()"> 
+
+</%def> 
+
+<%def name="body()">
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span8"> 
+    <div class="row-fluid">
+    <a class="btn" href="/open/proj/add">提交项目</a> 
+    <table class="table">
+    <thead>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>    
+    <!-- //codes list -->   
+    % for proj in projs:
+    <tr>
+      <td width="45">
+        <div class="post-meta"><img src="${proj.image}" ></div> 
+      </td>
+      <td>
+        <h3><a href="/open/proj/${proj.id}"> ${proj.name}</a> </h3>
+        <div >
+          <span>所有者：<a href="${proj.homepage}">${proj.owner}</a> </span>&nbsp;&nbsp;
+          <span class="active">收录日期：${ctx.convtime(proj.created)} </span> &nbsp;&nbsp; 
+          <span class="active"><a href="${proj.homepage}">项目主页</a> </span> &nbsp;&nbsp; 
+          <span class="btn btn-mini"><a href="/open/proj/rec/${proj.id}">赞(${proj.recs})</a> </span> &nbsp;
+          
+        </div>             
+        </td>
+        <td >
+          <div class="post-meta"> <span class="badge badge-info">${proj.hits}</span></div> 
+        </td>        
+        </tr>
+    % endfor 
+    </tbody>
+   </table>
+    <ul class="pager">
+    % if page > 1:
+      <li><a href="${ctx.env.get("PATH_INFO")}?page=${page-1}">上一页</a></li>
+    % endif
+    % if tops and len(tops)>= ctx.pagesize: 
+      <li><a href="${ctx.env.get("PATH_INFO")}?page=${page+1}">下一页</a></li>
+    % endif
+    </ul>
+   <!-- //end codes list -->
+  </div>
+  </div>
+
+  <div class="span3">
+    <div class="well sidebar-nav">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>热门项目</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+       % for tag in tags:
+        <tr>
+          <td><a href="/open/tag/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
+        </tr>
+        % endfor
+      </tbody>
+    </table>
+    </div><!--/.well -->
+  </div><!--/span-->
+  </div><!--/row-->
+</div>
+
+</%def> 
+
+

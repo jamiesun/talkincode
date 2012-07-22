@@ -1,11 +1,15 @@
 #!/usr/bin/python2.7 
 #coding:utf-8
-from settings import route_app,filter_html,render,auth_user
+from settings import route_app,render,pagesize
 from settings import errorpage
-import codestore
-import groupstore
-import tagstore
+from tools import filter_html
+import store
 import web
+
+langextset = {'c': 'c', 'java': 'java', 'lisp': 'lsp', "shell":"sh",
+              'javascript': 'js', 'c++': 'cpp', 'perl': 'pl',
+               'python': 'py', 'pascal': 'pas', 'sql': 'sql',
+                'php': 'php', 'ruby': 'rb','css':'css','html':'html'}
 
 app  = route_app()
 
@@ -19,69 +23,84 @@ class index():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        langs = codestore.list_langs()
-        tags = tagstore.get_code_tags()
-        tops = codestore.list_index(page=page,limit=50) 
+        offset = (page-1) * 50  
+        langs = store.Lang.where()
+        tags = store.get_code_tags(30)
+        tops = store.Code.where().order_by("create_time desc")[offset:50]
         return render("code.html",tops = tops,langs=langs,tags=tags,page=page) 
 
 @app.route("/add")
 class add_code():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
-        langs = codestore.list_langs()
+        langs = store.Lang.where()
         return render("code_add.html",langs = langs)
 
     def POST(self):
         user = web.ctx.session.get("user")
-        author = user and user['author'] or 'Anonymous'
-        email = user and user['email'] or 'Anonymous@talkincode.org'
+        author = user and user.author or 'Anonymous'
+        email = user and user.email or '@'
         form = web.input()
         title = form.get("title")
-        tags = form.get("tags")
+        tags = form.get("tags",'other')
         lang = form.get("lang","undefined")
         content = form.get("content")
+
+        if not title:
+            raise 'title can not empty'
+
+        if not content:
+            raise 'content can not empty'
 
         try:
             if tags :tags = tags[:255]
             title = title[:255]
-            params = dict(title=title,
+            code = store.Code(
+                        id = store.nextid(),
+                        title=title,
                         lang=lang,
                         author=author,
                         email=email,
                         tags=tags,
-                        content=content)
-            codestore.add_code(**params)
+                        content=content,
+                        create_time=store.currtime())
+            code.save()
             raise web.seeother("/code/",absolute=True)
         except Exception, e:
             return errorpage("add code error %s"%e)
+
+
 
 @app.route("/comment/add")
 class add_comment():
     def POST(self):
         try:
+            comment = store.Comment()
+            comment.id = store.nextid()
             user = web.ctx.session.get("user")
-            userid = user and user["id"] or None  
+            comment.userid = user and user.id or ''  
             form = web.input()
-            author = user and user["username"] or form.get("author")
-            content = form.get("content")
-            codeid = form.get("codeid")
-            email = user and user["email"] or form.get("email")
-            url =  user and user["url"] or form.get("url")
-            ip = web.ctx.ip
-            agent =  web.ctx.env.get('HTTP_USER_AGENT')
-            status = userid and 1 or 0
-            if author : author = author[:64]
-            if email :email = email[:128]
-            if url : url = url[:128]
+            comment.author = user and user.username or form.get("author")[:64]
+            comment.content = form.get("content")
+            comment.postid = form.get("postid")
+            comment.email = user and user.email or form.get("email")[:128]
+            comment.url =  user and user.url or form.get("url")
+            comment.ip = web.ctx.ip
+            comment.agent =  web.ctx.env.get('HTTP_USER_AGENT')
+            comment.status = comment.userid and 1 or 0
+            comment.created = store.currtime()
 
-            if not content:
+            if not comment.content:
                 raise Exception('content not empty')
-            if not userid:
-                if not author or not email :
+            if not comment.userid:
+                if not comment.author or not comment.email :
                     raise Exception('author email not empty') 
-            codestore.add_comment(codeid,content,userid,author,email,url,ip,agent,status)
-            raise web.seeother("/code/view/%s"%codeid,absolute=True)
+            comment.save()
+            store.Comment.commit()
+            raise web.seeother("/code/view/%s"%comment.postid,absolute=True)
         except Exception, e:
+            import traceback
+            traceback.print_exc()
             return errorpage("add comment error %s"%e)    
 
 
@@ -90,9 +109,10 @@ class index_cat():
     def GET(self,lang):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        langs = codestore.list_langs()
-        tags = tagstore.get_code_tags()
-        tops = codestore.list_codes_bylang(lang,page=page,limit=50) 
+        offset = (page-1) * 50  
+        langs = store.Lang.where()
+        tags = store.get_code_tags(30)
+        tops =  store.Code.where().order_by("create_time desc")[offset:50]
         return render("code.html",
             tops = tops,
             tags=tags,
@@ -105,9 +125,10 @@ class index_cat():
     def GET(self,tag):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        tags = tagstore.get_code_tags()
-        langs = codestore.list_langs()
-        tops = codestore.list_codes_bytags(tag,page=page,limit=50) 
+        offset = (page-1) * 50  
+        tags = store.get_code_tags(30)
+        langs = store.Lang.where()
+        tops = store.Code.where("tags like %s",'%%%s%%'%tag).order_by("create_time desc")[offset:50]
         return render("code.html",
             tops=tops,
             page=page,
@@ -121,23 +142,46 @@ class code_view():
         web.header("Content-Type","text/html; charset=utf-8")
         try:
             page = int(web.input().get("page",1)) 
-            versions = codestore.list_versions(uid) 
-            content = codestore.get_content(uid)
-            posts = groupstore.list_posts_by_codeid(uid)
-            comments = groupstore.list_comments(uid,page=page)
-            content["content"] = filter_html(content["content"]) 
+            offset = (page-1) * 50  
+            versions = store.Code.where(parent=uid) [offset:50]
+            content = store.Code.get(id=uid)
+            content.hits += 1
+            content.save()
+            posts = store.Post.where(codeid=uid)
+            comments = store.Comment.where(postid=uid).order_by("created desc")[(page-1)*pagesize:pagesize]
+            content.content = filter_html(content.content) 
             return render("code_view.html",
                 page=page,
                 versions = versions,
                 content=content,
                 comments=comments,
-                pagename=content["title"],
+                pagename=content.title,
                 posts=posts) 
         except:
             return render("error.html",error="no data")        
 
 
-@app.route("/search")
-class code_search():
-    def POST(self):
-        pass
+
+@app.route("/download/(.*)")
+class code_view():
+    def GET(self,uid):
+        try:
+            content = store.Code.get(uid)
+            web.header("Content-Disposition","attachment; filename='%s.%s'"\
+                %(uid,langextset.get(content.lang,"txt")))
+            return content.content
+        except:
+            return render("error.html",error="no data")    
+
+@app.route("/rec/(.*)")
+class index():
+    def GET(self,uid):
+        web.header("Content-Type","text/html; charset=utf-8")
+        code = store.Code.get(uid)
+        try:
+            if code:
+                code.recs += 1
+                code.save()
+        except:
+            pass
+        raise web.seeother("/code/",absolute=True)
