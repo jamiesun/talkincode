@@ -37,7 +37,7 @@ class index():
             tags=tags,
             page=page)         
 
-@app.route("/proj/(.*)")
+@app.route("/proj/view/(.*)")
 class project():
     def GET(self,uid):
         web.header("Content-Type","text/html; charset=utf-8")

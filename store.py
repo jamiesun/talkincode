@@ -187,7 +187,14 @@ def sitemap_data():
             lastmod = lastmod_tmp.strftime("%Y-%m-%dT%H:%M:%SZ")
             url = dict(loc="http://www.talkincode.org/code/view/%s"%code.id,
                        lastmod=lastmod,chgfreq="monthly")
-            urlset.append(url)                    
+            urlset.append(url)       
+
+        for proj in Project.where():
+            lastmod_tmp = datetime.datetime.strptime(proj.created,"%Y-%m-%d %H:%M:%S")
+            lastmod = lastmod_tmp.strftime("%Y-%m-%dT%H:%M:%SZ")
+            url = dict(loc="http://www.talkincode.org/open/proj/view/%s"%proj.id,
+                       lastmod=lastmod,chgfreq="monthly")
+            urlset.append(url)                             
           
         return urlset
     except Exception,e:
