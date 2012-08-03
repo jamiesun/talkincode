@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"> 
+<channel> 
+	<title>${ctx.config.get("sitename")}</title> 
+	<atom:link href="http://www.talkincode.org/news/feed" rel="self" type="application/rss+xml" /> 
+	<link>http://www.talkincode.org</link> 
+	<description>${ctx.config.get("sitename")}是一个程序员分享资讯，分享代码的网站</description> 
+	<lastBuildDate>${lastBuildDate}</lastBuildDate>
+	<language>zh</language> 
+	<sy:updatePeriod>hourly</sy:updatePeriod> 
+	<sy:updateFrequency>1</sy:updateFrequency> 
+	<generator>http://www.talkincode.org</generator> 
+	% for item in tops:
+    <item>
+        <title>${item.title}</title> 
+        <dc:creator>www.talkincode.org</dc:creator> 
+        <pubDate>${item.modified}</pubDate> 
+        <link>http://www.talkincode.org/news/post/view/${item.id}</link> 
+        <description><![CDATA[
+         ${ctx.md.convert(item.content)}
+        ]]></description>
+    </item>
+    % endfor
+</channel>
+</rss>

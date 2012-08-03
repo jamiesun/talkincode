@@ -1,0 +1,92 @@
+<%inherit file="base.html"/>
+
+<%def name="head()"> 
+
+</%def> 
+
+<%def name="body()">
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span8"> 
+    <div class="row-fluid">
+       <ul class="breadcrumb">
+      % if ctag:
+      <li class="active">${ctag}</li><span class="divider">/</span>
+      % endif
+      <li class="active">主题数:${stats.get("total")}</li><span class="divider">/</span>
+      <li class="active">浏览次数:${stats.get("hits_total") or 0}</li>
+    </ul>  
+    <a class="btn" href="/news/post/add">我要投稿</a> 
+    <table class="table">
+    <thead>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>    
+    <!-- //codes list -->   
+    <% page_len = len(tops) %>
+    % for topit in tops:
+    <tr>
+      <td width="45">
+        <div class="post-meta"><img src="${ctx.get_avatar(ctx.get_user(topit['userid'])['email'],35)}" ></div> 
+      </td>
+      <td>
+        <h3><a href="/news/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
+        <p>${ctx.md.convert(topit["content"][:512])}<a href="/news/post/view/${topit['id']}">阅读全部</a></p>
+        <div >
+          <span><a href="#">${ctx.get_user(topit['userid'])["username"]}</a> </span> &nbsp;&nbsp;
+          <span class="active">${ctx.convtime(topit['modified'])} </span>  &nbsp;&nbsp; 标签：
+           % for tag in topit["tags"].split(","):
+            <span ><a href="/news/tag/${tag}">${tag}</a></span>
+           % endfor     
+           &nbsp;&nbsp; <span class="btn btn-mini"><a href="/news/post/rec/${topit.id}">赞(${topit.recs})</a></span>     
+        </div>             
+        </td>
+        <td >
+          <div class="post-meta"> <span class="badge badge-info">${topit['hits']}</span></div> 
+        </td>        
+        </tr>
+    % endfor 
+    </tbody>
+   </table>
+    <ul class="pager">
+    % if page > 1:
+      <li class="previous"><a href="${ctx.env.get("PATH_INFO")}?page=${page-1}">&larr; 更新的</a></li>
+    % endif
+    % if page_len >= ctx.pagesize: 
+      <li class="next"><a href="${ctx.env.get("PATH_INFO")}?page=${page+1}"> 过去的 &rarr;</a></li>
+    % endif
+    </ul>
+   <!-- //end codes list -->
+  </div>
+  </div>
+
+  <div class="span3">
+    <div class="well sidebar-nav">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>活跃主题</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+       % for tag in tags:
+        <tr>
+          <td><a href="/news/tag/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
+        </tr>
+        % endfor
+      </tbody>
+    </table>
+    </div><!--/.well -->
+  </div><!--/span-->
+  </div><!--/row-->
+</div>
+
+</%def> 
+
+

@@ -8,14 +8,14 @@
 
 <div class="container">
 
-<form class="well span8" action="/group/post/add" method="post" autocomplete="on">
+<form class="well span8" action="/news/post/add" method="post" autocomplete="on">
 <fieldset>
   <label>标题</label>
   <input type="hidden" name="codeid" value="${codeid or ''}">
   <input name="title" type="text"  autofocus="autofocus" required="required" class="span6" placeholder="输入标题">
   <label>标签</label>
   <input name="tags" type="text" class="span6" placeholder="输入标签,使用英文逗号分隔">
-  <label>主题内容（支持<a href="http://www.talkincode.org/group/post/view/fd1f3be720884decbbd40f659cf1157a">markdown</a>语法）</label>
+  <label>主题内容（支持<a href="http://www.talkincode.org/news/post/view/fd1f3be720884decbbd40f659cf1157a">markdown</a>语法）</label>
    <textarea class="input-xlarge" id="content" name="content" rows="9" style="margin: 0px; width: 600px; height: 280px; "></textarea>  
   <br/>
   <button type="submit" class="btn">立即发表</button>

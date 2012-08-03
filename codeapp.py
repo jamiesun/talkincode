@@ -23,10 +23,10 @@ class index():
     def GET(self):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        offset = (page-1) * 50  
+        offset = (page-1) * pagesize  
         langs = store.Lang.where()
         tags = store.get_code_tags(30)
-        tops = store.Code.where().order_by("create_time desc")[offset:50]
+        tops = store.Code.where().order_by("create_time desc")[offset:offset+pagesize]
         return render("code.html",tops = tops,langs=langs,tags=tags,page=page) 
 
 @app.route("/add")
@@ -109,10 +109,10 @@ class index_cat():
     def GET(self,lang):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        offset = (page-1) * 50  
+        offset = (page-1) * pagesize  
         langs = store.Lang.where()
         tags = store.get_code_tags(30)
-        tops =  store.Code.where().order_by("create_time desc")[offset:50]
+        tops =  store.Code.where().order_by("create_time desc")[offset:offset+pagesize]
         return render("code.html",
             tops = tops,
             tags=tags,
@@ -125,10 +125,10 @@ class index_cat():
     def GET(self,tag):
         web.header("Content-Type","text/html; charset=utf-8")
         page = int(web.input().get("page",1)) 
-        offset = (page-1) * 50  
+        offset = (page-1) * pagesize  
         tags = store.get_code_tags(30)
         langs = store.Lang.where()
-        tops = store.Code.where("tags like %s",'%%%s%%'%tag).order_by("create_time desc")[offset:50]
+        tops = store.Code.where("tags like %s",'%%%s%%'%tag).order_by("create_time desc")[offset:offset+pagesize]
         return render("code.html",
             tops=tops,
             page=page,
@@ -142,13 +142,13 @@ class code_view():
         web.header("Content-Type","text/html; charset=utf-8")
         try:
             page = int(web.input().get("page",1)) 
-            offset = (page-1) * 50  
-            versions = store.Code.where(parent=uid) [offset:50]
+            offset = (page-1) * pagesize  
+            versions = store.Code.where(parent=uid) [offset:pagesize]
             content = store.Code.get(id=uid)
             content.hits += 1
             content.save()
             posts = store.Post.where(codeid=uid)
-            comments = store.Comment.where(postid=uid).order_by("created desc")[(page-1)*pagesize:pagesize]
+            comments = store.Comment.where(postid=uid).order_by("created desc")[offset:offset+pagesize]
             content.content = filter_html(content.content) 
             return render("code_view.html",
                 page=page,

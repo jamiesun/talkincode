@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <title>${pagename or ctx.config.get("sitename")}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="码农的一亩三分地,谈谈跟代码有关的事">
+    <meta name="author" content="jamiesun">
 
     <!-- Le styles -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
@@ -58,15 +58,14 @@
           <div class="nav-collapse pull-right">
             <ul class="nav">
               <li><a href="/">首页</a></li>
-              <li><a href="/group">讨论区</a></li>
-              <li><a href="/code">代码库</a></li>
-              <li><a href="/open">开源项目</a></li>  
-<!--               <li class="dropdown">
+              <li><a href="/news">咨讯</a></li>
+              <li><a href="/code">代码</a></li>
+               <li class="dropdown">
                <a href="#" class="dropdown-toggle" data-toggle="dropdown">探索 <b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                  <li><a href="/sublimetext/plugins">sublime text插件专区</a></li>  
+                  <li><a href="/open/tag/sublime%20text">sublime text插件专区</a></li>  
                 </ul>
-              </li>    -->             
+              </li>             
               % if not session.get("user"):
               <li><a href="/join">加入</a></li>
               <li><a href="/login">登录</a></li>
@@ -78,7 +77,13 @@
                   <li><a href="/logout">退出</a></li>    
                 </ul>
               </li>  
-              % endif                      
+                 % if session.get("user").role==1:
+                    <li><a href="/news/audit">审核</a></li>
+                 % endif
+              % endif 
+
+
+
             </ul>                    
             <form class="navbar-search pull-right" action="/search" method="get">
             <input type="text" name="q" class="search-query" placeholder="Search">

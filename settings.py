@@ -12,6 +12,7 @@ import markdown
 
 
 md = markdown.Markdown(safe_mode='escape')
+appdir = "./"
 
 config = {
   "sitename":"Talk in code"
@@ -21,7 +22,7 @@ config = {
 logger = logging.getLogger("talkincode")
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(name)-12s %(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S',)
-file_handler = logging.FileHandler("/talkincode/logs/server.log")
+file_handler = logging.FileHandler("%s/logs/server.log"%appdir)
 console_handler = logging.StreamHandler(sys.stderr)
 file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
@@ -51,19 +52,19 @@ memary_manager = CacheManager(cache_regions={
 """ define file CacheManager imp """
 cache = CacheManager(**parse_cache_config_options({
     'cache.type': 'file',
-    'cache.data_dir': '/talkincode/cache/data',
-    'cache.lock_dir': '/talkincode/cache/lock'
+    'cache.data_dir': '%s/cache/data'%appdir,
+    'cache.lock_dir': '%s/cache/lock'%appdir
 }))   
 
-_lookup = TemplateLookup(directories=['/talkincode/templates'],
+_lookup = TemplateLookup(directories=['%s/templates'%appdir],
                           input_encoding='utf-8',
                           output_encoding='utf-8',
                           encoding_errors='replace',
-                          module_directory="/talkincode/tmp",
+                          module_directory="%s/tmp"%appdir,
                           cache_impl='beaker',
                           cache_args={'manager':memary_manager } )  
 
-pagesize = 30
+pagesize = 20
 
 
 
@@ -96,7 +97,16 @@ def auth_user(func):
             return func(*args,**kwargs)
     return warp
 
-
+def auth_admin(func):
+    def warp(*args,**kwargs):
+        session = web.ctx.session 
+        if not session or not session.get("user"):
+            raise web.seeother("/login",absolute=True)
+        elif session.get("user").role == 0:
+            raise web.seeother("/",absolute=True)
+        else:
+            return func(*args,**kwargs)
+    return warp
 
 
 

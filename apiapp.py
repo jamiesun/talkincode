@@ -163,9 +163,10 @@ class update_post():
         form = web.input()
         authkey = form.get("authkey")
         user = store.User.get(authkey=authkey)
-        userid = user.get("id")        
+        userid = user.id      
         postid = form.get("postid")
-        post = store.Post.get(postid=postid,userid=userid)
+        print userid,postid
+        post = store.Post.get(id=postid,userid=userid)
         if not post :
             return jsonResult(error="you are not the post author")
 
@@ -173,8 +174,8 @@ class update_post():
         post.tags = form.get("tags",'other')
         post.content = form.get("content")
         post.modified = store.currtime()
-        if not post.postid  or not post.content:
-            return jsonResult(error="postid,content can not empty")
+        if not post.content:
+            return jsonResult(error="content can not empty")
         try:
             post.save()
             store.Post.commit()

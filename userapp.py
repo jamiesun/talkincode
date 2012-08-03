@@ -25,7 +25,7 @@ class index():
         user = session.get("user")
         if not user:
             raise web.seeother("/")
-        userobj = store.User.where(username=user.username)
+        userobj = store.User.get(username=user.username)
         return render("user_settings.html",user=userobj) 
 
 

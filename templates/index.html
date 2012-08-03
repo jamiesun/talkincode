@@ -17,7 +17,7 @@
     <tr>
       <th> 热门编程语言： </th>
       % for lang in langs[:8]:
-      <th><a alt="${lang["name"]}" href="/code/category/${lang["name"]}">${lang["name"]}</a></th>
+      <th><a alt="${lang["name"]}" href="/code/tag/${lang["name"]}">${lang["name"]}</a></th>
       % endfor
       <th><a class="btn btn-mini" href="/code/add">分享我的代码</a> </th>
       </tr>
@@ -30,7 +30,7 @@
         </tr>
       </thead>    
       <tbody>
-      % for topit in tops[:10]:
+      % for topit in tops[:5]:
         <tr>
           <td><span class="label label-info">${topit['lang']}</span></td>
           <td><a alt="${topit['tags']}" href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
@@ -43,9 +43,6 @@
     </table>
 
      <ul class="breadcrumb">
-      <li>
-        <a href="/group">talkincode讨论区</a>: 
-      </li>
       <li class="active">主题数:${stats.get("total")}</li><span class="divider">/</span>
       <li class="active">浏览次数:${stats.get("hits_total") or 0}</li>
     </ul>   
@@ -89,25 +86,6 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>热门代码</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-       % for tag in codetags[:10]:
-        <tr>
-          <td><a href="/code/tag/${tag[0]}">${tag[0]}</a></td>
-          <td><span class="badge badge">${tag[1]}</span></td>
-        </tr>
-        % endfor
-      </tbody>
-    </table>
-    </div><!--/.well -->
-
-    <div class="well sidebar-nav">
-    <table class="table table-striped">
-      <thead>
-        <tr>
           <th>热门主题</th>
           <th></th>
         </tr>
@@ -122,6 +100,26 @@
       </tbody>
     </table>
     </div><!--/.well -->   
+    
+
+    <div class="well sidebar-nav">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>热门代码</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+       % for tag in codetags[:10]:
+        <tr>
+          <td><a href="/code/tag/${tag[0]}">${tag[0]}</a></td>
+          <td><span class="badge badge">${tag[1]}</span></td>
+        </tr>
+        % endfor
+      </tbody>
+    </table>
+    </div><!--/.well -->    
   </div><!--/span-->
   </div><!--/row-->
 </div>

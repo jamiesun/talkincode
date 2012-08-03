@@ -25,6 +25,18 @@
      </p>
     ${ctx.md.convert(post["content"])}
     </div>
+    <!-- JiaThis Button BEGIN -->
+    <div id="ckepop">
+      <span class="jiathis_txt">分享到：</span>
+      <a class="jiathis_button_tools_1"></a>
+      <a class="jiathis_button_tools_2"></a>
+      <a class="jiathis_button_tools_3"></a>
+      <a class="jiathis_button_tools_4"></a>
+      <a href="http://www.jiathis.com/share?uid=1522341" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+      <a class="jiathis_counter_style"></a>
+    </div>
+
+    <!-- JiaThis Button END -->    
     
     <!-- 评论列表-->
     <table class="table">
@@ -65,7 +77,7 @@
       % endif
       </ul>
     <!-- 评论表单-->
-    <form class="well" action="/group/comment/add" method="post" autocomplete="on">
+    <form class="well" action="/news/comment/add" method="post" autocomplete="on">
     <fieldset>
      <input type="hidden" name="postid" value="${post.id}">
       % if not session.get("user"):
@@ -76,7 +88,7 @@
       <label>主页</label>
       <input name="url" type="url"   class="span4" placeholder="输入主页地址">
       % endif
-      <label>评论内容（支持<a href="http://www.talkincode.org/group/post/view/fd1f3be720884decbbd40f659cf1157a">markdown</a>语法）</label>
+      <label>评论内容（支持<a href="http://www.talkincode.org/news/post/view/fd1f3be720884decbbd40f659cf1157a">markdown</a>语法）</label>
        <textarea class="input-xlarge" id="content" name="content"  required="required"  rows="6" style="margin: 0px; width: 680px; height: 120px; "></textarea>  
       <br/>
       <button type="submit" class="btn">立即发表</button>
@@ -96,7 +108,7 @@
       <tbody>
        % for tag in tags:
         <tr>
-          <td><a href="/group/tag/${tag[0]}">${tag[0]}</a></td>
+          <td><a href="/news/tag/${tag[0]}">${tag[0]}</a></td>
           <td><span class="badge badge">${tag[1]}</span></td>
         </tr>
         % endfor
@@ -106,7 +118,8 @@
   </div><!--/span-->
   </div><!--/row-->
 </div>
-
+<script type="text/javascript">var jiathis_config = {data_track_clickback:true};</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1522341" charset="utf-8"></script>
 </%def> 
 
 

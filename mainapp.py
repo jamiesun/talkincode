@@ -12,7 +12,7 @@ import web
 import cgi
 import apiapp
 import codeapp
-import groupapp
+import newsapp
 import userapp
 import tagsapp
 import opensapp
@@ -27,7 +27,7 @@ app  = route_app()
 app.mount("/api",apiapp.app)
 app.mount("/code",codeapp.app)
 app.mount("/open",opensapp.app)
-app.mount("/group",groupapp.app)
+app.mount("/news",newsapp.app)
 app.mount("/user",userapp.app)
 app.mount("/tags",tagsapp.app)
 '''session defined'''
@@ -69,6 +69,11 @@ class home():
         raise web.seeother("/",absolute=True)
             
 
+@app.route("/group/(.*)")
+class js():
+    def GET(self,xpath):
+        raise web.seeother("/news/%s"%xpath,absolute=True)
+
 @app.route("/js/(.*)")
 class js():
     def GET(self,filename):
@@ -91,7 +96,7 @@ class index():
         tops = store.Code.where().order_by("create_time desc")[:10] 
         langs = store.Lang.where()
         stats = store.get_post_stats(False)
-        posts = store.Post.where().order_by("created desc")[:pagesize]
+        posts = store.Post.where(status=1).order_by("created desc")[:pagesize]
         codetags = store.get_code_tags(30)
         posttags =  store.get_post_tags(30)
         return render("index.html",
@@ -207,17 +212,17 @@ class GEventServer():
 
 web.config.debug = False
 
-application = app.wsgifunc()        
+#application = app.wsgifunc()        
 
 # def start_server(port=19000):
 #     logger.info('starting server %s'%port)
 #     GEventServer(application,"0.0.0.0",port).start()
 
-# if __name__ == "__main__":
-#     import  platform
-#     if  1:#platform.system() == "Windows":
-#         web.config.debug = False
-#         app.run()
+if __name__ == "__main__":
+    import  platform
+    if  platform.system() == "Windows":
+        web.config.debug = False
+        app.run()
     # else:
     #     start_server()
 

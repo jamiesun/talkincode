@@ -29,6 +29,8 @@ def get_db_by_table(table_name):
 connection.get_db_by_table = get_db_by_table
 
 from sqlbean.shortcut import Model
+from sqlbean.db.query import Query
+
 
 class User(Model):
 
@@ -100,7 +102,11 @@ class Authkey(Model):
              
     class Meta:
         pk = "authkey" 
-        table = "authkeys"                       
+        table = "authkeys"         
+
+
+post_page  = lambda: Query(model=Post)    
+code_page  = lambda: Query(model=Code)           
 
 def todict(row,rowdesc):
     d = {}
@@ -174,10 +180,10 @@ def login(username,password):
 def sitemap_data():
     urlset = []
     try:
-        for post in Post.where():
+        for post in Post.where(status=1):
             lastmod_tmp = datetime.datetime.strptime(post.modified,"%Y-%m-%d %H:%M:%S")
             lastmod = lastmod_tmp.strftime("%Y-%m-%dT%H:%M:%SZ")
-            url = dict(loc="http://www.talkincode.org/group/post/view/%s"%post.id,
+            url = dict(loc="http://www.talkincode.org/news/post/view/%s"%post.id,
                        lastmod=lastmod,chgfreq="daily")
             urlset.append(url)
 
@@ -215,7 +221,7 @@ def get_tags(limit):
                 else:
                     tagset[t] = 1
 
-        for post in Post.where():
+        for post in Post.where(status=1):
             tag = post.tags
             if not tag:
                 continue
@@ -255,7 +261,7 @@ def get_code_tags(limit):
 def get_post_tags(limit):
     tagset = {}
     try:
-        for post in Post.where():
+        for post in Post.where(status=1):
             tag = post.tags
             if not tag:
                 continue
@@ -368,36 +374,10 @@ def get_user(id):
 
 if __name__ == "__main__":
     """pass"""
-    def fromModel(obj):
-        if isinstance(obj,Model):
-            dd = {}
-            for fd in obj._fields:
-                val = getattr(obj,fd)
-                if isinstance(val,unicode):
-                    dd[fd] = val.encode("utf-8")
-                else:
-                    dd[fd] = val 
-            return dd
-        return obj
+    p0 = post_page().where()[0:20]
+    p1 = Post.where()[15:300]
+    print len(p0)
+    print len(p1)
 
-
-    import simplejson as json
-    users = list(Post.where())
-    u0 = users[0]
-    print json.dumps(users,default=fromModel)
-    # print isinstance(u0,Model)
-    # # print type(u0)
-    # # print u0._fields
-    # # print dir(u0)
-    # #print obj_hk(u0)
-    # print fromModel(u0)
-    # print json.dumps(fromModel(u0))
-    # #register("test2","123456","test@com")
-    # conn = get_conn()
-    # cur = conn.cursor()
-    # cur.execute("select count(*) from posts where id=%s","1")
-    # print (cur._executed)
-    # cur.close()
-    # conn.close()
 
 
