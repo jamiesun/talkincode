@@ -22,12 +22,12 @@
     % for proj in projs:
     <tr>
       <td width="45">
-        <div class="post-meta"><img src="${proj.image}" ></div> 
+        <div class="post-meta"><img src="${proj.image|h}" ></div> 
       </td>
       <td>
-        <h3><a href="/open/proj/view/${proj.id}"> ${proj.name}</a> </h3>
+        <h3><a href="/open/proj/view/${proj.id}"> ${proj.name|h}</a> </h3>
         <div >
-          <span>所有者：<a href="${proj.homepage}">${proj.owner}</a> </span>&nbsp;&nbsp;
+          <span>所有者：<a href="${proj.homepage}">${proj.owner|h}</a> </span>&nbsp;&nbsp;
           <span class="active">收录日期：${ctx.convtime(proj.created)} </span> &nbsp;&nbsp; 
           <span class="active"><a href="${proj.homepage}">项目主页</a> </span> &nbsp;&nbsp; 
           <span class="btn btn-mini"><a href="/open/proj/rec/${proj.id}">赞(${proj.recs})</a> </span> &nbsp;
@@ -65,8 +65,8 @@
       <tbody>
        % for tag in tags:
         <tr>
-          <td><a href="/open/tag/${tag[0]}">${tag[0]}</a></td>
-          <td><span class="badge badge">${tag[1]}</span></td>
+          <td><a href="/open/tag/${tag[0]}">${tag[0]|h}</a></td>
+          <td><span class="badge badge">${tag[1]|h}</span></td>
         </tr>
         % endfor
       </tbody>

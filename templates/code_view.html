@@ -53,9 +53,9 @@ function setStyle(stylename)
         <p >${ctx.md.convert(comment["content"])}</p>
         <div >
           % if comment.get("userid"):
-          <span><a href="#">@${ctx.get_user(comment.userid)["username"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${ctx.get_user(comment.userid)["username"] | h}</a> </span>&nbsp;&nbsp;
           % else:
-            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author}</a> </span>&nbsp;&nbsp;
+            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author | h}</a> </span>&nbsp;&nbsp;
           % endif
           <span class="active">${ctx.convtime(comment['created'])} </span> &nbsp;&nbsp;       
            % if comment.via:
