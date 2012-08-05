@@ -57,7 +57,7 @@
     % for topit in posts:
     <tr>
       <td width="45">
-        <div class="post-meta"><img src="${ctx.get_avatar(ctx.get_user(topit['userid'])['email'],35)}" ></div> 
+        <div class="post-meta"><img width=35 height=35 src="${ctx.get_avatar(ctx.get_user(topit['userid'])['email'],35)}" ></div> 
       </td>
       <td>
         <h3><a href="/group/post/view/${topit['id']}"> ${topit['title']|h}</a> </h3>
