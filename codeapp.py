@@ -29,6 +29,13 @@ class index():
         tops = store.Code.where().order_by("create_time desc")[offset:offset+pagesize]
         return render("code.html",tops = tops,langs=langs,tags=tags,page=page) 
 
+@app.route("/feed")
+class index():
+    def GET(self):
+        web.header("Content-Type","text/xml; charset=utf-8")
+        tops = store.Code.where().order_by("create_time desc")[:100]
+        return render("codefeed.html",tops = tops,lastBuildDate=store.currtime())            
+
 @app.route("/add")
 class add_code():
     def GET(self):

@@ -107,6 +107,7 @@ class index():
             codetags=codetags,
             posttags=posttags) 
 
+
 @app.route("/join")
 class register():
     def GET(self):
