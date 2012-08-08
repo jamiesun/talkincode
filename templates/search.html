@@ -32,12 +32,12 @@
                 <div class="post-meta"><img src="${ctx.get_avatar(ctx.get_user(topit['userid'])['email'],35)}" ></div>  
               </td>
               <td>
-                <h3><a href="/news/post/view/${topit['id']}"> ${topit['title']}</a> </h3>
+                <h3><a href="/news/post/view/${topit['id']}"> ${topit['title']|h}</a> </h3>
                 <div >
-                  <span><a href="#">@${ctx.get_user(topit['userid'])["username"]}</a> </span>&nbsp;&nbsp;
+                  <span><a href="#">@${ctx.get_user(topit['userid'])["username"]|h}</a> </span>&nbsp;&nbsp;
                   <span class="active">${ctx.convtime(topit['modified'])} </span> &nbsp;&nbsp; 
                    % for tag in topit["tags"].split(","):
-                    <span ><a href="/tags/list/${tag}">${tag}</a></span>
+                    <span ><a href="/tags/list/${tag}">${tag|h}</a></span>
                    % endfor          
                 </div>             
                 </td>
@@ -59,8 +59,8 @@
             % for topit in codes:
               <tr>
                 <td><span class="label label-info">${topit['lang']}</span></td>
-                <td><a href="/code/view/${topit['id']}"> ${topit['title']}</a> </td>
-                <td><a href="#">@${topit['author']}</a></td>
+                <td><a href="/code/view/${topit['id']}"> ${topit['title']|h}</a> </td>
+                <td><a href="#">@${topit['author']|h}</a></td>
                 <td>${ctx.convtime(topit['create_time'])}</td>
                 <td><span class="badge badge-info">${topit['hits']}</span></td>
               </tr>
@@ -86,8 +86,8 @@
       <tbody>
        % for tag in tags:
         <tr>
-          <td><a href="/tags/list/${tag[0]}">${tag[0]}</a></td>
-          <td><span class="badge badge">${tag[1]}</span></td>
+          <td><a href="/tags/list/${tag[0]}">${tag[0]|h}</a></td>
+          <td><span class="badge badge">${tag[1]|h}</span></td>
         </tr>
         % endfor
       </tbody>

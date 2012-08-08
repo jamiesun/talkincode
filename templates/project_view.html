@@ -11,7 +11,7 @@
   <div class="span8"> 
     <div class="row-fluid">
     <div class="page-header">
-      <h3>${proj.name}</h3>
+      <h3>${proj.name|h}</h3>
     </div>     
     <div > 
     ${ctx.md.convert(proj.description)}
@@ -33,9 +33,9 @@
         <p >${ctx.md.convert(comment["content"])}</p>
         <div >
           % if comment.get("userid"):
-          <span><a href="#">@${ctx.get_user(comment.userid)["username"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${ctx.get_user(comment.userid)["username"]|h}</a> </span>&nbsp;&nbsp;
           % else:
-            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author}</a> </span>&nbsp;&nbsp;
+            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author|h}</a> </span>&nbsp;&nbsp;
           % endif
           <span class="active">${ctx.convtime(comment['created'])} </span> &nbsp;&nbsp;       
            % if comment.via:
@@ -79,16 +79,16 @@
   <div class="span3">
     <div class="well">
       <ul class="nav">
-        <li>所有者：<a href="${proj.homepage}">${proj.owner}</a></li>
-        <li>编程语言: ${proj.lang}</a></li>
+        <li>所有者：<a href="${proj.homepage|h}">${proj.owner|h}</a></li>
+        <li>编程语言: ${proj.lang|h}</a></li>
         <li>浏览次数: ${proj.hits}</li>
         <li>标签：
         % for tag in proj.tags.split(","):
-          <a href="/open/tag/${tag}">${tag}</a>
+          <a href="/open/tag/${tag}">${tag|h}</a>
         % endfor 
        </li>        
        <br>
-       <li><a class="btn btn-small" href="${proj.homepage}">项目主页</a> </li>
+       <li><a class="btn btn-small" href="${proj.homepage|h}">项目主页</a> </li>
        </ul>
     </div><!--/.well -->
   </div><!--/span-->

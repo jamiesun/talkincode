@@ -36,7 +36,18 @@ function setStyle(stylename)
     <pre class="prettyprint Lang-${content["lang"]} linenums">${content["content"]}</pre>
      <!-- //end codes -->
 
+    <!-- JiaThis Button BEGIN -->
+    <div id="ckepop">
+      <span class="jiathis_txt">分享到：</span>
+      <a class="jiathis_button_tools_1"></a>
+      <a class="jiathis_button_tools_2"></a>
+      <a class="jiathis_button_tools_3"></a>
+      <a class="jiathis_button_tools_4"></a>
+      <a href="http://www.jiathis.com/share?uid=1522341" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+      <a class="jiathis_counter_style"></a>
+    </div>
 
+    <!-- JiaThis Button END -->   
     <!-- 评论列表-->
     <table class="table">
     <thead>
@@ -53,9 +64,9 @@ function setStyle(stylename)
         <p >${ctx.md.convert(comment["content"])}</p>
         <div >
           % if comment.get("userid"):
-          <span><a href="#">@${ctx.get_user(comment.userid)["username"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${ctx.get_user(comment.userid)["username"] | h}</a> </span>&nbsp;&nbsp;
           % else:
-            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author}</a> </span>&nbsp;&nbsp;
+            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author | h}</a> </span>&nbsp;&nbsp;
           % endif
           <span class="active">${ctx.convtime(comment['created'])} </span> &nbsp;&nbsp;       
            % if comment.via:
@@ -137,6 +148,8 @@ function setStyle(stylename)
 </div>
 
 
+<script type="text/javascript">var jiathis_config = {data_track_clickback:true};</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1522341" charset="utf-8"></script>
 
 
 </%def> 

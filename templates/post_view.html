@@ -18,9 +18,9 @@
     % endif    
     <div > 
     <p >
-     <a href="#">@${ctx.get_user(post['userid'])["username"]}</a> &nbsp;&nbsp;标签：
+     <a href="#">@${ctx.get_user(post['userid'])["username"] | h}</a> &nbsp;&nbsp;标签：
       % for tag in post["tags"].split(","):
-          <a href="/tags/list/${tag}">${tag}</a>&nbsp;
+          <a href="/tags/list/${tag}">${tag | h}</a>&nbsp;
        % endfor 
      </p>
     ${ctx.md.convert(post["content"])}
@@ -51,12 +51,12 @@
     <tr>
       <td width="45"><img class="post-meta" src="${ctx.get_avatar(comment.get('email'),35)}" ></td>
       <td>
-        <p >${ctx.md.convert(comment["content"])}</p>
+        <p >${ctx.md.convert(comment["content"]) }</p>
         <div >
           % if comment.get("userid"):
-          <span><a href="#">@${ctx.get_user(comment.userid)["username"]}</a> </span>&nbsp;&nbsp;
+          <span><a href="#">@${ctx.get_user(comment.userid)["username"]| h}</a> </span>&nbsp;&nbsp;
           % else:
-            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author}</a> </span>&nbsp;&nbsp;
+            <span><a href="${comment.url or '#'}" rel="nofollow">${comment.author | h}</a> </span>&nbsp;&nbsp;
           % endif
           <span class="active">${ctx.convtime(comment['created'])} </span> &nbsp;&nbsp;       
            % if comment.via:
