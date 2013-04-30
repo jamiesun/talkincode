@@ -15,7 +15,7 @@ dbpool = PooledDB(creator=MySQLdb,
 maxusage=1000,
 host='localhost',
 user='root',
-passwd='root',
+passwd='',
 db='talkincode_db1',
 charset="utf8")
 
